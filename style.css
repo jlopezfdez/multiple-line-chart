@@ -1,0 +1,97 @@
+body {
+  letter-spacing: -.014em;
+  font-family: 'Avenir', sans-serif;
+}
+
+svg {
+  border: 0px solid #ccc;
+}
+
+text {
+  font-family: 'Avenir', sans-serif;
+}
+
+path {
+  stroke-width: 1.5;
+}
+
+.domain {
+  stroke: black;
+  stroke-width: 0.5;
+}
+
+.x.axis .tick line {
+  stroke: black;
+}
+
+.axis .tick line {
+  stroke: lightgray;
+  stroke-width: 0.5;
+  stroke-dasharray: 4, 2;
+}
+
+.texto-etiqueta {
+  font-size: 0.7em;
+  font-weight: bold;
+}
+
+.header {
+  font-size: 1em;
+  fill: #555;
+}
+
+.subheader {
+  font-size: 0.8em;
+  fill: #555;
+}
+
+.grafico-filtros {
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.grafico-cabecera {
+  margin-bottom: -5px;
+}
+
+.OpcionFiltrado {
+  display: inline-block;
+  padding: 0.3em 1em;
+  border: 1px solid;
+  margin-right: 1px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: white;
+}
+
+.OpcionFiltrado_deseleccionar {
+  display: inline-block;
+  padding: 0.3em 1em;
+  border: 1px solid;
+  margin-right: 1px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: gold;
+  font-weight: bold;
+}
+
+.OpcionFiltrado:first-child {
+  border-radius: 2px 0 0 2px;
+}
+
+.OpcionFiltrado:last-child {
+  margin-right: 0;
+  border-radius: 0 2px 2px 0;
+  border-right-width: 1px;
+}
+
+.OpcionFiltrado:hover:not(.OpcionFiltrado--selected) {
+  background: lightgray;
+}
+
+.OpcionFiltrado--selected {
+  background-color: lightyellow;
+  color: #fff;
+}
