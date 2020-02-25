@@ -5,7 +5,7 @@ function multipleLineChart(datos, excluidos) {
   const lineChartData = prepareLineChartData(filtroDatos);
 
   // Dimensiones generales del objeto.
-  let screenWidth = 1000,
+  let screenWidth = 1200,
     screenHeight = 700;
 
   const margin = {
@@ -21,8 +21,8 @@ function multipleLineChart(datos, excluidos) {
   const svg = d3
     .select('.line-chart-container')
     .append('svg')
-    .attr('width', 800)
-    .attr('height', 600)
+    .attr('width', screenWidth)
+    .attr('height', screenHeight)
     .attr('width', width + margin.right + margin.left)
     .attr('height', height + margin.top + margin.bottom)
   const grafico = svg
