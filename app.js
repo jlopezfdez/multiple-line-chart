@@ -3,6 +3,7 @@ function multipleLineChart(datos, excluidos) {
   // Preparación de datos.
   const filtroDatos = filterData(datos, excluidos);
   const lineChartData = prepareLineChartData(filtroDatos);
+  let tooltipInfoSeleccionada = false;
 
   // Dimensiones generales del objeto.
   let screenWidth = 1200,
@@ -19,7 +20,7 @@ function multipleLineChart(datos, excluidos) {
 
   // AÑADIR ELEMENTOS BASICOS ////////////////////////////////////////////////////////////////////////////////////
   const svg = d3
-    .select('.line-chart-container')
+    .select('.grafico-contenedor')
     .append('svg')
     .attr('width', screenWidth)
     .attr('height', screenHeight)
@@ -40,7 +41,7 @@ function multipleLineChart(datos, excluidos) {
     .append('tspan')
     .text('Facturado por comercial en cada mes en EUR (miles)');
   const subheader = d3
-    .select('.line-chart-subheader')
+    .select('.grafico-subcabecera')
     .append('tspan')
     .attr('x', 0)
     .text('Total facturado comercial/mes en 2019');
@@ -79,8 +80,11 @@ function multipleLineChart(datos, excluidos) {
     .range(d3.schemeCategory10)
 
   // 3.- Añadir botones en DOM con comerciales para filtrado.
-  const filtrosComerciales = d3
-    .select('.grafico-filtros')
+
+  const graficoFiltros = d3
+    .select('.grafico-filtros');
+
+  const filtrosComerciales = graficoFiltros
     .selectAll('.OpcionFiltrado')
     .data(lineChartData["series"], d => d.key)
     .enter()
@@ -89,17 +93,24 @@ function multipleLineChart(datos, excluidos) {
     .html(d => d.key)
     .style('color', d => color(d.key));
 
-  d3
-    .select('.grafico-filtros')
+
+  // Boton para tootips y para deseleccionar todos los filtros marcados.
+  graficoFiltros
+    .append('div')
+    .attr('class', 'OpcionFiltrado_tooltips')
+    .html('i')
+    .style('color', 'black');
+
+  graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_deseleccionar')
     .html('X')
     .style('color', 'black');
 
-
   // 4.- Escuchando eventos click en botones con nombre de comerciales.
   d3.selectAll('.OpcionFiltrado').on('click', click_opciones);
   d3.selectAll('.OpcionFiltrado_deseleccionar').on('click', click_deseleccionar);
+  d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   // FIN LINEA DE BOTONES CON COMERCIALES PARA FILTRADO //////////////////////////////////////////////////////////
 
   dibujarLineas(lineChartData);
@@ -260,7 +271,7 @@ function multipleLineChart(datos, excluidos) {
   // Dibujar líneas.
   function dibujarLineas(data) {
     const TIEMPO_UPDATE_EJEY = 600
-      TIEMPO_ENTER_LINEAS = 600,
+    TIEMPO_ENTER_LINEAS = 600,
       TIEMPO_UPDATE_LINEAS = 600,
       TIEMPO_REMOVE_LINEAS = 400,
       TIEMPO_ENTER_PUNTOS = 600,
@@ -270,7 +281,7 @@ function multipleLineChart(datos, excluidos) {
       TIEMPO_UPDATE_ETIQUETAS = 600,
       TIEMPO_REMOVE_ETIQUETAS = 400,
       RADIO_PUNTOS = 3,
-      TICKS_EJEY=15;
+      TICKS_EJEY = 15;
 
     // ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////////
     yScale = d3
@@ -280,7 +291,7 @@ function multipleLineChart(datos, excluidos) {
 
     yAxis = d3
       .axisLeft(yScale)
-      .ticks(TICKS_EJEY )
+      .ticks(TICKS_EJEY)
       .tickFormat(formatTicksEjeY)
       .tickSizeOuter(0)
       .tickSizeInner(-width);
@@ -382,6 +393,60 @@ function multipleLineChart(datos, excluidos) {
         });
     // FIN DIBUJO DE PUNTOS SOBRE LAS LINEAS ///////////////////////////////////////////
 
+    // DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////////////
+    var tooltip = grafico
+      .selectAll('.tooltip')
+      .data(data.series, d => d.key)
+      .join(
+        enter => {
+          enter
+            .append('g')
+            .attr('class', function (d) {
+              if (tooltipInfoSeleccionada) {
+                return "tooltip tooltip--selected";
+              } else {
+                return "tooltip";
+              }
+            })
+            .selectAll('text')
+            .data(d => d.values)
+            .join('text')
+            .attr('class', 'textopuntos')
+            .attr('x', d => xScale(parseInt(d.mes)) + 5)
+            .attr('y', d => yScale(d.value) - 5)
+            .text(d => d.value)
+            .style('opacity', 0)
+            .transition()
+            .duration(TIEMPO_ENTER_PUNTOS)
+            .style('opacity', 1)
+        },
+        update => {
+          update
+            .attr('class', function (d) {
+              if (tooltipInfoSeleccionada) {
+                return "tooltip tooltip--selected";
+              } else {
+                return "tooltip";
+              }
+            })
+            .selectAll('text')
+            .data(d => d.values)
+            .join('text')
+            .transition()
+            .duration(TIEMPO_UPDATE_PUNTOS)
+            .attr('x', d => xScale(parseInt(d.mes)) + 5)
+            .attr('y', d => yScale(d.value) - 5)
+            .text(d => d.value)
+        },
+        exit => {
+          exit
+            .transition()
+            .duration(TIEMPO_REMOVE_PUNTOS)
+            .style('opacity', 0)
+            .remove()
+        });
+        // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
+
     // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////////
     var etiquetas = grafico
       .select('.grupo-etiquetas')
@@ -471,6 +536,20 @@ function multipleLineChart(datos, excluidos) {
     if (!seleccionado.empty()) {
       seleccionado.classed('OpcionFiltrado--selected', false);
       dibujarLineas(lineChartData);
+    }
+  }
+
+  function click_tooltips() {
+
+    tooltipInfoSeleccionada = !tooltipInfoSeleccionada;
+
+    if (tooltipInfoSeleccionada)
+    {
+      d3.selectAll('.tooltip').classed('tooltip--selected', true);
+      d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--selected', true);
+    } else {
+      d3.selectAll('.tooltip').classed('tooltip--selected', false);
+      d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--selected', false);
     }
   }
 }
