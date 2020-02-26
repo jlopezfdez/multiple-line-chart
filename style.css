@@ -104,11 +104,11 @@ path {
 }
 
 .OpcionFiltrado:hover:not(.OpcionFiltrado--selected) {
-  background: lightgray;
+  background: lightgreen;
 }
 
 .OpcionFiltrado--selected {
-  background-color: lightyellow;
+  background-color: lightgray;
   color: #fff;
 }
 

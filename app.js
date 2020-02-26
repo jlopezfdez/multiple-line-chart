@@ -268,6 +268,10 @@ function multipleLineChart(datos, excluidos) {
       .replace('k', ' mil');
   }
 
+  function formatComa(d) {
+    return d3.format(",")(d).replace(',', '.')
+  }
+
   // Dibujar líneas.
   function dibujarLineas(data) {
     const TIEMPO_UPDATE_EJEY = 600
@@ -282,6 +286,7 @@ function multipleLineChart(datos, excluidos) {
       TIEMPO_REMOVE_ETIQUETAS = 400,
       RADIO_PUNTOS = 3,
       TICKS_EJEY = 15;
+
 
     // ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////////
     yScale = d3
@@ -414,7 +419,7 @@ function multipleLineChart(datos, excluidos) {
             .attr('class', 'textopuntos')
             .attr('x', d => xScale(parseInt(d.mes)) + 5)
             .attr('y', d => yScale(d.value) - 5)
-            .text(d => d.value)
+            .text(d => formatComa(d.value))
             .style('opacity', 0)
             .transition()
             .duration(TIEMPO_ENTER_PUNTOS)
@@ -436,7 +441,7 @@ function multipleLineChart(datos, excluidos) {
             .duration(TIEMPO_UPDATE_PUNTOS)
             .attr('x', d => xScale(parseInt(d.mes)) + 5)
             .attr('y', d => yScale(d.value) - 5)
-            .text(d => d.value)
+            .text(d => formatComa(d.value))
         },
         exit => {
           exit
@@ -445,7 +450,7 @@ function multipleLineChart(datos, excluidos) {
             .style('opacity', 0)
             .remove()
         });
-        // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
+    // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
 
     // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////////
     var etiquetas = grafico
@@ -483,6 +488,9 @@ function multipleLineChart(datos, excluidos) {
             .attr('x', screenWidth + margin.right)
             .remove()
         });
+
+  d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
+
     // FIN DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS /////////////////////////////////////
   }
 
@@ -543,10 +551,13 @@ function multipleLineChart(datos, excluidos) {
 
     tooltipInfoSeleccionada = !tooltipInfoSeleccionada;
 
-    if (tooltipInfoSeleccionada)
-    {
+    if (tooltipInfoSeleccionada) {
       d3.selectAll('.tooltip').classed('tooltip--selected', true);
       d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--selected', true);
+      // seleccion = d3.selectAll('.texto-etiqueta');
+      // seleccion.each(function(d) {
+      //   debugger;
+      // });
     } else {
       d3.selectAll('.tooltip').classed('tooltip--selected', false);
       d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--selected', false);
