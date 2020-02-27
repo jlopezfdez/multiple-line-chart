@@ -6,12 +6,12 @@ function multipleLineChart(datos, excluidos) {
   let tooltipInfoSeleccionada = false;
 
   // Dimensiones generales del objeto.
-  let screenWidth = 1200,
+  const screenWidth = 1200,
     screenHeight = 700;
 
   const margin = {
     top: 40,
-    right: 120,
+    right: 180,
     bottom: 60,
     left: 40
   };
@@ -33,7 +33,7 @@ function multipleLineChart(datos, excluidos) {
   const grupoLineas = grafico
     .append('g')
     .attr('class', 'svg-paths');
-  var grupoEtiquetas = grafico
+  const grupoEtiquetas = grafico
     .append('g')
     .attr('class', 'grupo-etiquetas');
   const header = d3
@@ -51,7 +51,7 @@ function multipleLineChart(datos, excluidos) {
   // FIN DE ELEMENTOS BÁSICOS ////////////////////////////////////////////////////////////////////////////////////
 
   // DIBUJAR EJE X ///////////////////////////////////////////////////////////////////////////////////////////////
-  // EJE Y dibujado dinámicamente según comerciales seleccionados, en funcion 'dibujarLineas'.
+  // EJE Y dibujado dinámicamente según elementos del grupo1 seleccionados, en funcion 'dibujarLineas'.
   const xScale = d3
     .scaleLinear()
     .domain(d3.extent(lineChartData.rangoMeses))
@@ -68,23 +68,22 @@ function multipleLineChart(datos, excluidos) {
     .call(xAxis);
   // FIN DIBUJO EJE X ////////////////////////////////////////////////////////////////////////////////////////////
 
-  // LINEA DE BOTONES CON COMERCIALES PARA FILTRADO //////////////////////////////////////////////////////////////
-  // 1.- Rellenar array de comerciales.
-  var comerciales = new Array;
+  // LINEA DE BOTONES CON ELEMENTOS GRUPO1 PARA FILTRADO /////////////////////////////////////////////////////////
+  // 1.- Rellenar array de elementos del grupo1.
+  var elementosGrupo1 = new Array;
   for (let index = 0; index < lineChartData.series.length; index++) {
-    comerciales.push(lineChartData.series[index].key);
+    elementosGrupo1.push(lineChartData.series[index].key);
   }
-  // 2.- Función para asignar colores a comerciales.
+  // 2.- Función para asignar colores a campo de grupo1.
   color = d3.scaleOrdinal()
-    .domain(comerciales)
+    .domain(elementosGrupo1)
     .range(d3.schemeCategory10)
 
-  // 3.- Añadir botones en DOM con comerciales para filtrado.
-
+  // 3.- Añadir botones en DOM con elementos de grupo1 para filtrado.
   const graficoFiltros = d3
     .select('.grafico-filtros');
 
-  const filtrosComerciales = graficoFiltros
+  const filtrosGrupo1 = graficoFiltros
     .selectAll('.OpcionFiltrado')
     .data(lineChartData["series"], d => d.key)
     .enter()
@@ -92,7 +91,6 @@ function multipleLineChart(datos, excluidos) {
     .attr('class', 'OpcionFiltrado')
     .html(d => d.key)
     .style('color', d => color(d.key));
-
 
   // Boton para tootips y para deseleccionar todos los filtros marcados.
   graficoFiltros
@@ -104,14 +102,14 @@ function multipleLineChart(datos, excluidos) {
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_deseleccionar')
-    .html('X')
+    .html('VACIAR')
     .style('color', 'black');
 
-  // 4.- Escuchando eventos click en botones con nombre de comerciales.
+  // 4.- Escuchando eventos click en botones con nombre de elementos del grupo1.
   d3.selectAll('.OpcionFiltrado').on('click', click_opciones);
   d3.selectAll('.OpcionFiltrado_deseleccionar').on('click', click_deseleccionar);
   d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
-  // FIN LINEA DE BOTONES CON COMERCIALES PARA FILTRADO //////////////////////////////////////////////////////////
+  // FIN LINEA DE BOTONES CON ELEMENTOS DE GRUPO1 PARA FILTRADO ///////////////////////////////////////////////////
 
   dibujarLineas(lineChartData);
 
@@ -123,17 +121,17 @@ function multipleLineChart(datos, excluidos) {
     // Ordenamos por mes ascendentemente para que los puntos del eje X ya estén ordenados.
     const dataOrdenadoFecha = data.slice().sort((a, b) => d3.ascending(a.fecha, b.fecha));
 
-    // Agrupamos por comercial y año-mes. Así tendrémos un array de objetos por comercial con el total de cada mes.
+    // Agrupamos por grupo1 y año-mes. Así tendrémos un array de objetos por elementos del grupo1 con el total de cada mes.
     // Se utiliza año mes en la variable d.yearmonth para los casos en los que se consulten meses de un año y del anterior.
-    var dataPorComercial = d3
+    var datosGrupo1 = d3
       .nest()
-      .key(d => d.comercial)
+      .key(d => d.grupo1)
       .key(d => d.yearmonth)
-      .rollup(v => parseInt(d3.sum(v, leaf => leaf.neto)))
+      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero)))
       .entries(dataOrdenadoFecha);
 
     // Separamos en un array aparte todos los meses encontrados en el rango de datos.
-    // Esto nos permitirá añadir un valor de 0 en el caso de que un comercial no tenga ventas en un determinado mes.
+    // Esto nos permitirá añadir un valor de 0 en el caso de que un elemento del grupo1 no tenga valores en un determinado mes.
     // El array 'arrayMeses' tendrá una lista de valores del tipo ["1912" (para diciembre de 2019), "2001" (para enero de 2020), etc]
     var meses = d3
       .nest()
@@ -144,61 +142,62 @@ function multipleLineChart(datos, excluidos) {
     }
 
     // Repasamos todos los arrays de valores con los meses para rellenar con 0 aquellos meses
-    // que no existan en algún comercial, de entre los meses existentes en el rango de búsqueda.
+    // que no existan en algún elemento de grupo1, de entre los meses existentes en el rango de búsqueda.
     // Se tiene en cuenta cualquier rango de meses, Ene-Dic, Sep-Nov, etc.
-    for (let i = 0; i < dataPorComercial.length; i++) {
-      for (let j = 0; j < dataPorComercial[i].values.length; j++) {
+    for (let i = 0; i < datosGrupo1.length; i++) {
+      for (let j = 0; j < datosGrupo1[i].values.length; j++) {
         for (let z = 0; z < arrayMeses.length; z++) {
-          if (dataPorComercial[i].values[z] != undefined) {
-            if (dataPorComercial[i].values[z].key != arrayMeses[z]) {
-              dataPorComercial[i].values.splice(z, 0, {
+          if (datosGrupo1[i].values[z] != undefined) {
+            if (datosGrupo1[i].values[z].key != arrayMeses[z]) {
+              datosGrupo1[i].values.splice(z, 0, {
                 "key": arrayMeses[z].toString(),
                 "value": 0
               });
             }
           } else {
-            dataPorComercial[i].values.splice(z, 0, {
+            datosGrupo1[i].values.splice(z, 0, {
               "key": arrayMeses[z].toString(),
               "value": 0
             });
           }
           // El campo mes de este array será un contador de todos los meses. Esto ayudará en el escalado en el eje X.
-          dataPorComercial[i].values[z].mes = z;
+          datosGrupo1[i].values[z].mes = z;
         }
       }
     }
 
-    // Rango de meses de uno de los comerciales, el primero por si solo hay uno, ya que todos tienen que tener la lista completa de meses
+    // Rango de meses de uno de los elementos del grupo1, el primero por si solo hay uno, ya que todos tienen que tener la lista completa de meses
     // aunque algunos tendrán valor 0 en algún mes
-    for (let index = 0; index < dataPorComercial[0].values.length; index++) {
-      rangoMeses.push(dataPorComercial[0].values[index].mes);
+    for (let index = 0; index < datosGrupo1[0].values.length; index++) {
+      rangoMeses.push(datosGrupo1[0].values[index].mes);
     }
 
-    // Máxima cantidad en cualquier mes de todos los comerciales.
+    // Máxima cantidad en cualquier mes de todos los elementos del grupo1.
     // Esto servirá para establecer el dominio máximo del eje Y.
+    // También se calcula el sumatorio de valores del mes, y la media.
     let maximos = new Array;
-    for (let i = 0; i < dataPorComercial.length; i++) {
-      maximos.push(d3.max(dataPorComercial[i].values, d => d.value));
+    for (let i = 0; i < datosGrupo1.length; i++) {
+      maximos.push(d3.max(datosGrupo1[i].values, d => d.value));
+      datosGrupo1[i].values.suma = d3.sum(datosGrupo1[i].values, d => d.value);
+      datosGrupo1[i].values.media = parseInt(d3.mean(datosGrupo1[i].values, d => d.value).toFixed(0));
     }
-    const yMax = d3.max(maximos);
+    const limiteEjeY = d3.max(maximos);
 
     // Producción de datos finales para su posterior dibujo.
     const lineData = {
-      series: dataPorComercial,
-      yMax: yMax,
+      series: datosGrupo1,
+      limiteEjeY: limiteEjeY,
       meses: arrayMeses,
       rangoMeses: rangoMeses
     };
-
     return lineData;
   }
 
-  // La función de filtrado nos permite eliminar del array de datos aquello que no queramos mostrar,
-  // como ciertos comerciales, o aquellos que estén por debajo de un valor determinado, etc.
+  // La función de filtrado nos permite eliminar del array de datos aquello que no queramos mostrar.
   function filterData(data, excluidos) {
     return data.filter(d => {
       return (
-        !excluidos.includes(d.comercial)
+        !excluidos.includes(d.grupo1)
       );
     });
   }
@@ -269,7 +268,7 @@ function multipleLineChart(datos, excluidos) {
   }
 
   function formatComa(d) {
-    return d3.format(",")(d).replace(',', '.')
+    return d3.format(",")(d).replace(/,/g, '.')
   }
 
   // Dibujar líneas.
@@ -287,11 +286,10 @@ function multipleLineChart(datos, excluidos) {
       RADIO_PUNTOS = 3,
       TICKS_EJEY = 15;
 
-
     // ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////////
     yScale = d3
       .scaleLinear()
-      .domain([0, data.yMax])
+      .domain([0, data.limiteEjeY])
       .range([height, 0]);
 
     yAxis = d3
@@ -408,7 +406,7 @@ function multipleLineChart(datos, excluidos) {
             .append('g')
             .attr('class', function (d) {
               if (tooltipInfoSeleccionada) {
-                return "tooltip tooltip--selected";
+                return "tooltip tooltip--seleccion";
               } else {
                 return "tooltip";
               }
@@ -417,8 +415,8 @@ function multipleLineChart(datos, excluidos) {
             .data(d => d.values)
             .join('text')
             .attr('class', 'textopuntos')
-            .attr('x', d => xScale(parseInt(d.mes)) + 5)
-            .attr('y', d => yScale(d.value) - 5)
+            .attr('x', d => xScale(parseInt(d.mes)) + 4)
+            .attr('y', d => yScale(d.value) - 7)
             .text(d => formatComa(d.value))
             .style('opacity', 0)
             .transition()
@@ -429,7 +427,7 @@ function multipleLineChart(datos, excluidos) {
           update
             .attr('class', function (d) {
               if (tooltipInfoSeleccionada) {
-                return "tooltip tooltip--selected";
+                return "tooltip tooltip--seleccion";
               } else {
                 return "tooltip";
               }
@@ -439,8 +437,8 @@ function multipleLineChart(datos, excluidos) {
             .join('text')
             .transition()
             .duration(TIEMPO_UPDATE_PUNTOS)
-            .attr('x', d => xScale(parseInt(d.mes)) + 5)
-            .attr('y', d => yScale(d.value) - 5)
+            .attr('x', d => xScale(parseInt(d.mes)) + 4)
+            .attr('y', d => yScale(d.value) - 7)
             .text(d => formatComa(d.value))
         },
         exit => {
@@ -452,7 +450,7 @@ function multipleLineChart(datos, excluidos) {
         });
     // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
 
-    // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////////
+    // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////
     var etiquetas = grafico
       .select('.grupo-etiquetas')
       .selectAll('.texto-etiqueta')
@@ -476,9 +474,6 @@ function multipleLineChart(datos, excluidos) {
             .transition()
             .duration(TIEMPO_UPDATE_ETIQUETAS)
             .attr('y', d => yScale(d.values[d.values.length - 1].value))
-            .text(d => d.key)
-            .style('dominant-baseline', 'central')
-            .style('fill', d => color(d.key))
             .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
         },
         exit => {
@@ -488,33 +483,82 @@ function multipleLineChart(datos, excluidos) {
             .attr('x', screenWidth + margin.right)
             .remove()
         });
+    // FIN DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////
+    
 
-  d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
+    // DIBUJO DE SUMATORIO ETIQUETAS EN FIN DE LAS LINEAS //////////////////////////
+    var totalEtiqueta = grafico
+      .select('.grupo-etiquetas')
+      .selectAll('.total-etiqueta')
+      .data(data.series, d => d.key)
+      .join(
+        enter => {
+          enter
+            .append('text')
+            .attr('class', function (d) {
+              if (tooltipInfoSeleccionada) {
+                return "total-etiqueta total-etiqueta--seleccion";
+              } else {
+                return "total-etiqueta";
+              }
+            })
+            .attr('x', screenWidth)
+            .attr('y', d => yScale(d.values[d.values.length - 1].value) + 10)
+            .text(d => formatComa(d.values.suma))
+            .style('dominant-baseline', 'central')
+            .style('fill', d => color(d.key))
+            .transition()
+            .duration(TIEMPO_ENTER_ETIQUETAS)
+            .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
+        },
+        update => {
+          update
+            .attr('class', function (d) {
+              if (tooltipInfoSeleccionada) {
+                return "total-etiqueta total-etiqueta--seleccion";
+              } else {
+                return "total-etiqueta";
+              }
+            })
+            .transition()
+            .duration(TIEMPO_UPDATE_ETIQUETAS)
+            .attr('y', d => yScale(d.values[d.values.length - 1].value) + 10)
+            .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
+        },
+        exit => {
+          exit
+            .transition()
+            .duration(TIEMPO_REMOVE_ETIQUETAS)
+            .attr('x', screenWidth + margin.right)
+            .remove()
+        });
+    // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
+    
 
-    // FIN DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS /////////////////////////////////////
+    d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   }
 
   function click_opciones() {
     let data = new Array;
 
-    const seleccionado = d3.select(this).classed('OpcionFiltrado--selected')
-    d3.select(this).classed('OpcionFiltrado--selected', !seleccionado);
+    const seleccionado = d3.select(this).classed('OpcionFiltrado--seleccion')
+    d3.select(this).classed('OpcionFiltrado--seleccion', !seleccionado);
 
-    // Consultar comerciales seleccionados para conformar array.
-    let arrayComerciales = new Array;
+    // Consultar elementos de grupo1 seleccionados para conformar array.
+    let arrayElementosGrupo1 = new Array;
 
     salida = d3
-      .selectAll('.OpcionFiltrado--selected');
+      .selectAll('.OpcionFiltrado--seleccion');
     salida.each(function (d, i) {
-      arrayComerciales.push(this.innerHTML);
+      arrayElementosGrupo1.push(this.innerHTML);
     });
 
-    if (arrayComerciales.length > 0) {
-      for (let i = 0; i < arrayComerciales.length; i++) {
-        checkArrayComerciales = arrayComerciales[i];
+    if (arrayElementosGrupo1.length > 0) {
+      for (let i = 0; i < arrayElementosGrupo1.length; i++) {
+        checkArrayEltosGrupo1 = arrayElementosGrupo1[i];
         for (let j = 0; j < lineChartData.series.length; j++) {
           checkLineChartData = lineChartData.series[j].key;
-          if (checkLineChartData == checkArrayComerciales) {
+          if (checkLineChartData == checkArrayEltosGrupo1) {
             elto = lineChartData.series[j];
             data.push(elto);
           }
@@ -525,12 +569,12 @@ function multipleLineChart(datos, excluidos) {
       for (let i = 0; i < data.length; i++) {
         maximos.push(d3.max(data[i].values, d => d.value));
       }
-      const yMax = d3.max(maximos);
+      const limiteEjeY = d3.max(maximos);
 
       // Producción de datos finales para su posterior dibujo.
       const newlineChartData = {
         series: data,
-        yMax: yMax,
+        limiteEjeY: limiteEjeY,
       };
       dibujarLineas(newlineChartData);
     } else {
@@ -539,51 +583,50 @@ function multipleLineChart(datos, excluidos) {
   }
 
   function click_deseleccionar() {
-    const seleccionado = d3.selectAll('.OpcionFiltrado--selected');
+    const seleccionado = d3.selectAll('.OpcionFiltrado--seleccion');
 
     if (!seleccionado.empty()) {
-      seleccionado.classed('OpcionFiltrado--selected', false);
+      seleccionado.classed('OpcionFiltrado--seleccion', false);
       dibujarLineas(lineChartData);
     }
   }
 
   function click_tooltips() {
-
     tooltipInfoSeleccionada = !tooltipInfoSeleccionada;
+    let newArray = Array;
 
     if (tooltipInfoSeleccionada) {
-      d3.selectAll('.tooltip').classed('tooltip--selected', true);
-      d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--selected', true);
-      // seleccion = d3.selectAll('.texto-etiqueta');
-      // seleccion.each(function(d) {
-      //   debugger;
-      // });
+      d3.selectAll('.tooltip').classed('tooltip--seleccion', true);
+      d3.selectAll('.total-etiqueta').classed('total-etiqueta--seleccion', true);
+      d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--seleccion', true);
+
+
     } else {
-      d3.selectAll('.tooltip').classed('tooltip--selected', false);
-      d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--selected', false);
+      d3.selectAll('.tooltip').classed('tooltip--seleccion', false);
+      d3.selectAll('.total-etiqueta').classed('total-etiqueta--seleccion', false);
+      d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--seleccion', false);
     }
   }
 }
 
-// Comerciales a excluir.
+// Elementos del grupo1 a excluir.
 const arrayExcluidos = ["INACTIVOS"];
 
 // Tipeado de valores.
 function type(d) {
-
   const parseDate = string => d3.utcParse('%d/%m/%y')(string);
   const parseDate2 = d3.utcParse('%d/%m/%y');
   const formatYear = d3.timeFormat("%y%m");
   const parseNA = string => (string === 'NA' ? undefined : string);
   return {
     documento: +d.documento,
-    neto: +d.neto,
+    numero: +d.numero,
     year: +parseDate(d.fecha).getUTCFullYear().toString().substr(2, 2),
     mes: parseDate(d.fecha).getMonth(), // Asigna los meses con números del 0 al 11
     dia: parseDate(d.fecha).getDate(),
     fecha: parseDate(d.fecha),
-    yearmonth: formatYear(parseDate2(d.fecha)),
-    comercial: parseNA(d.comercial)
+    yearmonth: formatYear(parseDate(d.fecha)),
+    grupo1: parseNA(d.grupo1)
   };
 }
 

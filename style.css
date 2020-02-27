@@ -35,6 +35,8 @@ path {
   font-weight: bold;
 }
 
+
+
 .header {
   font-size: 1em;
   fill: #555;
@@ -89,7 +91,7 @@ path {
   font-weight: bold;
 }
 
-.OpcionFiltrado_tooltips--selected {
+.OpcionFiltrado_tooltips--seleccion {
   background-color: lightgreen;
 }
 
@@ -103,11 +105,11 @@ path {
   border-right-width: 1px;
 }
 
-.OpcionFiltrado:hover:not(.OpcionFiltrado--selected) {
+.OpcionFiltrado:hover:not(.OpcionFiltrado--seleccion) {
   background: lightgreen;
 }
 
-.OpcionFiltrado--selected {
+.OpcionFiltrado--seleccion {
   background-color: lightgray;
   color: #fff;
 }
@@ -120,6 +122,16 @@ path {
   opacity: 0;
 }
 
-.tooltip--selected {
+.tooltip--seleccion {
+  opacity: 1;
+}
+
+.total-etiqueta {
+  font-size: 0.65em;
+  opacity: 0;
+}
+
+.total-etiqueta--seleccion {
+  font-size: 0.65em;
   opacity: 1;
 }
