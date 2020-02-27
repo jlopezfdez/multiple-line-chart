@@ -31,11 +31,9 @@ path {
 }
 
 .texto-etiqueta {
-  font-size: 0.7em;
+  font-size: 0.6em;
   font-weight: bold;
 }
-
-
 
 .header {
   font-size: 1em;
@@ -127,11 +125,10 @@ path {
 }
 
 .total-etiqueta {
-  font-size: 0.65em;
+  font-size: 0.60em;
   opacity: 0;
 }
 
 .total-etiqueta--seleccion {
-  font-size: 0.65em;
   opacity: 1;
 }
