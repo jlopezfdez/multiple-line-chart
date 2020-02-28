@@ -75,6 +75,8 @@ path {
   font-size: 12px;
   background-color: gold;
   font-weight: bold;
+  color: black;
+
 }
 
 .OpcionFiltrado_tooltips {
@@ -87,6 +89,24 @@ path {
   font-size: 12px;
   background-color: white;
   font-weight: bold;
+  color: black;
+}
+
+.OpcionFiltrado_media {
+  display: inline-block;
+  padding: 0.3em 1em;
+  border: 1px solid;
+  margin-right: 1px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  background-color: white;
+  font-weight: bold;
+  color: black;
+}
+
+.OpcionFiltrado_media--seleccion {
+  background-color: lightgreen;
 }
 
 .OpcionFiltrado_tooltips--seleccion {
@@ -117,11 +137,13 @@ path {
 }
 
 .tooltip {
-  opacity: 0;
+  display: none;
+  /*opacity: 0;*/
 }
 
 .tooltip--seleccion {
-  opacity: 1;
+  display: flex;
+  /* opacity: 1; */
 }
 
 .total-etiqueta {
@@ -131,4 +153,8 @@ path {
 
 .total-etiqueta--seleccion {
   opacity: 1;
+}
+
+.line-series {
+  fill: none;
 }

@@ -4,6 +4,7 @@ function multipleLineChart(datos, excluidos) {
   const filtroDatos = filterData(datos, excluidos);
   const lineChartData = prepareLineChartData(filtroDatos);
   let tooltipInfoSeleccionada = false;
+  let mediaInfoSeleccionada = false;
 
   // Dimensiones generales del objeto.
   const screenWidth = 1200,
@@ -92,23 +93,30 @@ function multipleLineChart(datos, excluidos) {
     .html(d => d.key)
     .style('color', d => color(d.key));
 
-  // Boton para tootips y para deseleccionar todos los filtros marcados.
+  // Boton para media, tootips y para deseleccionar todos los filtros marcados.
+  graficoFiltros
+    .append('div')
+    .attr('class', 'OpcionFiltrado_media')
+    .html('X')
+  //.style('color', 'black');
+
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_tooltips')
     .html('i')
-    .style('color', 'black');
+  // .style('color', 'black');
 
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_deseleccionar')
     .html('VACIAR')
-    .style('color', 'black');
+  // .style('color', 'black');
 
   // 4.- Escuchando eventos click en botones con nombre de elementos del grupo1.
   d3.selectAll('.OpcionFiltrado').on('click', click_opciones);
   d3.selectAll('.OpcionFiltrado_deseleccionar').on('click', click_deseleccionar);
   d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
+  d3.selectAll('.OpcionFiltrado_media').on('click', click_media);
   // FIN LINEA DE BOTONES CON ELEMENTOS DE GRUPO1 PARA FILTRADO ///////////////////////////////////////////////////
 
   dibujarLineas(lineChartData);
@@ -151,18 +159,26 @@ function multipleLineChart(datos, excluidos) {
             if (datosGrupo1[i].values[z].key != arrayMeses[z]) {
               datosGrupo1[i].values.splice(z, 0, {
                 "key": arrayMeses[z].toString(),
-                "value": 0
+                "value": 0,
               });
             }
           } else {
             datosGrupo1[i].values.splice(z, 0, {
               "key": arrayMeses[z].toString(),
-              "value": 0
+              "value": 0,
             });
           }
           // El campo mes de este array será un contador de todos los meses. Esto ayudará en el escalado en el eje X.
           datosGrupo1[i].values[z].mes = z;
         }
+      }
+    }
+
+    // Asignar media a cada mes, por comodidad en recuperacion de datos.
+    for (let i = 0; i < datosGrupo1.length; i++) {
+      media = parseInt(d3.mean(datosGrupo1[i].values, d => d.value).toFixed(0));
+      for (let j = 0; j < datosGrupo1[i].values.length; j++) {
+        datosGrupo1[i].values[j].media = media;
       }
     }
 
@@ -190,6 +206,7 @@ function multipleLineChart(datos, excluidos) {
       meses: arrayMeses,
       rangoMeses: rangoMeses
     };
+
     return lineData;
   }
 
@@ -280,17 +297,25 @@ function multipleLineChart(datos, excluidos) {
       TIEMPO_ENTER_PUNTOS = 600,
       TIEMPO_UPDATE_PUNTOS = 600,
       TIEMPO_REMOVE_PUNTOS = 400,
+      TIEMPO_ENTER_ETIQUETAS_PUNTOS = 600,
+      TIEMPO_UPDATE_ETIQUETAS_PUNTOS = 600,
+      TIEMPO_REMOVE_ETIQUETAS_PUNTOS = 400,
       TIEMPO_ENTER_ETIQUETAS = 600,
       TIEMPO_UPDATE_ETIQUETAS = 600,
       TIEMPO_REMOVE_ETIQUETAS = 400,
       RADIO_PUNTOS = 3,
-      TICKS_EJEY = 15;
+      TICKS_EJEY = 7;
 
     // ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////////
+    if (mediaInfoSeleccionada)
+      limiteEjeY = d3.max(data.series, d => d.values.media)
+    else limiteEjeY = data.limiteEjeY;
+
     yScale = d3
       .scaleLinear()
-      .domain([0, data.limiteEjeY])
+      .domain([0, limiteEjeY])
       .range([height, 0]);
+
 
     yAxis = d3
       .axisLeft(yScale)
@@ -315,10 +340,18 @@ function multipleLineChart(datos, excluidos) {
     // FIN ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////
 
     // DIBUJO DE LINEAS ///////////////////////////////////////////////////////////////
+    let xLineGenAccessor = d => xScale(parseInt(d.mes))
+    let yLineGenAccessor = mediaInfoSeleccionada ? d => yScale(parseInt(d.media)) : d => yScale(parseInt(d.value));
+
     lineGen = d3
       .line()
-      .x(d => xScale(parseInt(d.mes)))
-      .y(d => yScale(d.value));
+      .x(xLineGenAccessor)
+      .y(yLineGenAccessor);
+
+    lineGenMedia = d3
+      .line()
+      .x(xLineGenAccessor)
+      .y(yLineGenAccessor)
 
     var lineas = grafico
       .select('.svg-paths')
@@ -330,7 +363,6 @@ function multipleLineChart(datos, excluidos) {
             .append('path')
             .attr('class', 'line-series')
             .attr('d', d => lineGen(d.values))
-            .style('fill', 'none')
             .style('stroke', d => color(d.key))
             .style('opacity', 0)
             .transition()
@@ -342,8 +374,6 @@ function multipleLineChart(datos, excluidos) {
             .transition()
             .duration(TIEMPO_UPDATE_LINEAS)
             .attr('d', d => lineGen(d.values))
-            .style('fill', 'none')
-            .style('stroke', d => color(d.key))
         },
         exit => {
           exit
@@ -355,6 +385,9 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE LINEAS ///////////////////////////////////////////////////////////
 
     // DIBUJO DE PUNTOS SOBRE LAS LINEAS //////////////////////////////////////////////
+    let xPuntosAccessor = d => xScale(parseInt(d.mes));
+    let yPuntosAccessor = mediaInfoSeleccionada ? d => yScale(d.media) : d => yScale(d.value);
+
     var puntos = grafico
       .selectAll('.puntos')
       .data(data.series, d => d.key)
@@ -367,8 +400,8 @@ function multipleLineChart(datos, excluidos) {
             .selectAll('circle')
             .data(d => d.values)
             .join('circle')
-            .attr('cx', d => xScale(parseInt(d.mes)))
-            .attr('cy', d => yScale(d.value))
+            .attr('cx', xPuntosAccessor)
+            .attr('cy', yPuntosAccessor)
             .attr('r', d => RADIO_PUNTOS)
             .style('opacity', 0)
             .transition()
@@ -383,8 +416,8 @@ function multipleLineChart(datos, excluidos) {
             .join('circle')
             .transition()
             .duration(TIEMPO_UPDATE_PUNTOS)
-            .attr('cx', d => xScale(parseInt(d.mes)))
-            .attr('cy', d => yScale(d.value))
+            .attr('cx', xPuntosAccessor)
+            .attr('cy', yPuntosAccessor)
             .attr('r', d => RADIO_PUNTOS)
         },
         exit => {
@@ -397,60 +430,55 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE PUNTOS SOBRE LAS LINEAS ///////////////////////////////////////////
 
     // DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////////////
-    var tooltip = grafico
-      .selectAll('.tooltip')
-      .data(data.series, d => d.key)
-      .join(
-        enter => {
-          enter
-            .append('g')
-            .attr('class', function (d) {
-              if (tooltipInfoSeleccionada) {
-                return "tooltip tooltip--seleccion";
-              } else {
-                return "tooltip";
-              }
-            })
-            .selectAll('text')
-            .data(d => d.values)
-            .join('text')
-            .attr('class', 'textopuntos')
-            .attr('x', d => xScale(parseInt(d.mes)) + 4)
-            .attr('y', d => yScale(d.value) - 7)
-            .text(d => formatComa(d.value))
-            .style('opacity', 0)
-            .transition()
-            .duration(TIEMPO_ENTER_PUNTOS)
-            .style('opacity', 1)
-        },
-        update => {
-          update
-            .attr('class', function (d) {
-              if (tooltipInfoSeleccionada) {
-                return "tooltip tooltip--seleccion";
-              } else {
-                return "tooltip";
-              }
-            })
-            .selectAll('text')
-            .data(d => d.values)
-            .join('text')
-            .transition()
-            .duration(TIEMPO_UPDATE_PUNTOS)
-            .attr('x', d => xScale(parseInt(d.mes)) + 4)
-            .attr('y', d => yScale(d.value) - 7)
-            .text(d => formatComa(d.value))
-        },
-        exit => {
-          exit
-            .transition()
-            .duration(TIEMPO_REMOVE_PUNTOS)
-            .style('opacity', 0)
-            .remove()
-        });
+    if (!mediaInfoSeleccionada) {
+      claseGrupoTooltip = tooltipInfoSeleccionada ? "tooltip tooltip--seleccion" : "tooltip"
+      var tooltip = grafico
+        .selectAll('.tooltip')
+        .data(data.series, d => d.key)
+        .join(
+          enter => {
+            enter
+              .append('g')
+              .attr('class', claseGrupoTooltip)
+              .selectAll('text')
+              .data(d => d.values)
+              .join('text')
+              .attr('class', 'textopuntos')
+              .attr('x', d => xScale(parseInt(d.mes)) + 4)
+              .attr('y', d => yScale(d.value) - 7)
+              .text(d => formatComa(d.value))
+              .style('opacity', 0)
+              .transition()
+              .duration(TIEMPO_ENTER_ETIQUETAS_PUNTOS)
+              .style('opacity', 1)
+          },
+          update => {
+            update
+              .attr('class', claseGrupoTooltip)
+              .selectAll('text')
+              .data(d => d.values)
+              .join('text')
+              .transition()
+              .duration(TIEMPO_UPDATE_ETIQUETAS_PUNTOS)
+              .attr('x', d => xScale(parseInt(d.mes)) + 4)
+              .attr('y', d => yScale(d.value) - 7)
+              .text(d => formatComa(d.value));
+          },
+          exit => {
+            exit
+              .transition()
+              .duration(TIEMPO_REMOVE_ETIQUETAS_PUNTOS)
+              .style('opacity', 0)
+              .remove()
+          });
+    }
     // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
 
     // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////
+    let xEtiquetasAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1);
+    let yEtiquetasAccessor = mediaInfoSeleccionada ?
+      d => yScale(d.values[d.values.length - 1].media) : d => yScale(d.values[d.values.length - 1].value);
+
     var etiquetas = grafico
       .select('.grupo-etiquetas')
       .selectAll('.texto-etiqueta')
@@ -461,20 +489,20 @@ function multipleLineChart(datos, excluidos) {
             .append('text')
             .attr('class', 'texto-etiqueta')
             .attr('x', screenWidth)
-            .attr('y', d => yScale(d.values[d.values.length - 1].value))
+            .attr('y', yEtiquetasAccessor)
             .text(d => d.key)
             .style('dominant-baseline', 'central')
             .style('fill', d => color(d.key))
             .transition()
             .duration(TIEMPO_ENTER_ETIQUETAS)
-            .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
+            .attr('x', xEtiquetasAccessor)
         },
         update => {
           update
             .transition()
             .duration(TIEMPO_UPDATE_ETIQUETAS)
-            .attr('y', d => yScale(d.values[d.values.length - 1].value))
-            .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
+            .attr('x', xEtiquetasAccessor)
+            .attr('y', yEtiquetasAccessor)
         },
         exit => {
           exit
@@ -484,9 +512,13 @@ function multipleLineChart(datos, excluidos) {
             .remove()
         });
     // FIN DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////
-    
 
     // DIBUJO DE SUMATORIO ETIQUETAS EN FIN DE LAS LINEAS //////////////////////////
+    claseSumatorio = tooltipInfoSeleccionada ? "total-etiqueta total-etiqueta--seleccion" : "total-etiqueta";
+    let xSumatorioAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1);
+    let ySumatorioAccessor = mediaInfoSeleccionada ?
+      d => yScale(d.values[d.values.length - 1].media) + 10 : d => yScale(d.values[d.values.length - 1].value) + 10;
+
     var totalEtiqueta = grafico
       .select('.grupo-etiquetas')
       .selectAll('.total-etiqueta')
@@ -495,35 +527,23 @@ function multipleLineChart(datos, excluidos) {
         enter => {
           enter
             .append('text')
-            .attr('class', function (d) {
-              if (tooltipInfoSeleccionada) {
-                return "total-etiqueta total-etiqueta--seleccion";
-              } else {
-                return "total-etiqueta";
-              }
-            })
+            .attr('class', claseSumatorio)
             .attr('x', screenWidth)
-            .attr('y', d => yScale(d.values[d.values.length - 1].value) + 10)
+            .attr('y', ySumatorioAccessor)
             .text(d => formatComa(d.values.suma))
             .style('dominant-baseline', 'central')
             .style('fill', d => color(d.key))
             .transition()
             .duration(TIEMPO_ENTER_ETIQUETAS)
-            .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
+            .attr('x', xSumatorioAccessor)
         },
         update => {
           update
-            .attr('class', function (d) {
-              if (tooltipInfoSeleccionada) {
-                return "total-etiqueta total-etiqueta--seleccion";
-              } else {
-                return "total-etiqueta";
-              }
-            })
+            .attr('class', claseSumatorio)
             .transition()
             .duration(TIEMPO_UPDATE_ETIQUETAS)
-            .attr('y', d => yScale(d.values[d.values.length - 1].value) + 10)
-            .attr('x', d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1))
+            .attr('y', ySumatorioAccessor)
+            .attr('x', xSumatorioAccessor)
         },
         exit => {
           exit
@@ -533,13 +553,13 @@ function multipleLineChart(datos, excluidos) {
             .remove()
         });
     // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
-    
 
     d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   }
 
   function click_opciones() {
     let data = new Array;
+    let maximos = new Array;
 
     const seleccionado = d3.select(this).classed('OpcionFiltrado--seleccion')
     d3.select(this).classed('OpcionFiltrado--seleccion', !seleccionado);
@@ -547,25 +567,16 @@ function multipleLineChart(datos, excluidos) {
     // Consultar elementos de grupo1 seleccionados para conformar array.
     let arrayElementosGrupo1 = new Array;
 
-    salida = d3
-      .selectAll('.OpcionFiltrado--seleccion');
-    salida.each(function (d, i) {
-      arrayElementosGrupo1.push(this.innerHTML);
+    filtrosSeleccionados = d3
+      .select('.grafico-filtros')
+      .selectAll('.OpcionFiltrado');
+    filtrosSeleccionados.each(function (d, i) {
+      selec = d3.select(this).classed('OpcionFiltrado--seleccion');
+      if (selec) data.push(lineChartData.series[i]); // IMPORTANTE, preparar orden de elemento grupo1 en lineChartData igual al orden 
+                                                     // en que se muestran en los botones para filtrar.
     });
 
-    if (arrayElementosGrupo1.length > 0) {
-      for (let i = 0; i < arrayElementosGrupo1.length; i++) {
-        checkArrayEltosGrupo1 = arrayElementosGrupo1[i];
-        for (let j = 0; j < lineChartData.series.length; j++) {
-          checkLineChartData = lineChartData.series[j].key;
-          if (checkLineChartData == checkArrayEltosGrupo1) {
-            elto = lineChartData.series[j];
-            data.push(elto);
-          }
-        }
-      }
-
-      let maximos = new Array;
+    if (data.length > 0) {
       for (let i = 0; i < data.length; i++) {
         maximos.push(d3.max(data[i].values, d => d.value));
       }
@@ -596,16 +607,35 @@ function multipleLineChart(datos, excluidos) {
     let newArray = Array;
 
     if (tooltipInfoSeleccionada) {
-      d3.selectAll('.tooltip').classed('tooltip--seleccion', true);
+      if (mediaInfoSeleccionada)
+        d3.selectAll('.tooltip').classed('tooltip--seleccion', false);
+      else
+        d3.selectAll('.tooltip').classed('tooltip--seleccion', true);
+
       d3.selectAll('.total-etiqueta').classed('total-etiqueta--seleccion', true);
       d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--seleccion', true);
-
-
     } else {
       d3.selectAll('.tooltip').classed('tooltip--seleccion', false);
       d3.selectAll('.total-etiqueta').classed('total-etiqueta--seleccion', false);
       d3.selectAll('.OpcionFiltrado_tooltips').classed('OpcionFiltrado_tooltips--seleccion', false);
     }
+
+  }
+
+  function click_media() {
+    mediaInfoSeleccionada = !mediaInfoSeleccionada;
+
+    if (mediaInfoSeleccionada) {
+
+      d3.selectAll('.tooltip').classed('tooltip--seleccion', false);
+
+    }
+    d3.selectAll('.OpcionFiltrado_tooltips--seleccion').classed('OpcionFiltrado_tooltips--seleccion', false);
+    tooltipInfoSeleccionada = false;
+    d3.selectAll('.OpcionFiltrado--seleccion').classed('OpcionFiltrado--seleccion', false);
+    d3.selectAll('.OpcionFiltrado_media').classed('OpcionFiltrado_media--seleccion', mediaInfoSeleccionada);
+
+    dibujarLineas(lineChartData);
   }
 }
 
