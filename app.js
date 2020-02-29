@@ -97,13 +97,13 @@ function multipleLineChart(datos, excluidos) {
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_media')
-    .html('X')
+    .html('MEDIA')
   //.style('color', 'black');
 
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_tooltips')
-    .html('i')
+    .html('info')
   // .style('color', 'black');
 
   graficoFiltros
@@ -199,6 +199,9 @@ function multipleLineChart(datos, excluidos) {
     }
     const limiteEjeY = d3.max(maximos);
 
+    // Datos ordenados de mayor a menor.
+    datosGrupo1 = datosGrupo1.slice().sort((a, b) => d3.descending(a.values.suma, b.values.suma));
+
     // Producción de datos finales para su posterior dibujo.
     const lineData = {
       series: datosGrupo1,
@@ -206,6 +209,7 @@ function multipleLineChart(datos, excluidos) {
       meses: arrayMeses,
       rangoMeses: rangoMeses
     };
+
 
     return lineData;
   }
@@ -475,49 +479,90 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
 
     // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////
-    let xEtiquetasAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1);
-    let yEtiquetasAccessor = mediaInfoSeleccionada ?
-      d => yScale(d.values[d.values.length - 1].media) : d => yScale(d.values[d.values.length - 1].value);
+    // let xEtiquetasAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1);
+    // let yEtiquetasAccessor = mediaInfoSeleccionada ?
+    //   d => yScale(d.values[d.values.length - 1].media) : d => yScale(d.values[d.values.length - 1].value);
 
-    var etiquetas = grafico
-      .select('.grupo-etiquetas')
-      .selectAll('.texto-etiqueta')
-      .data(data.series, d => d.key)
-      .join(
-        enter => {
-          enter
-            .append('text')
-            .attr('class', 'texto-etiqueta')
-            .attr('x', screenWidth)
-            .attr('y', yEtiquetasAccessor)
-            .text(d => d.key)
-            .style('dominant-baseline', 'central')
-            .style('fill', d => color(d.key))
-            .transition()
-            .duration(TIEMPO_ENTER_ETIQUETAS)
-            .attr('x', xEtiquetasAccessor)
-        },
-        update => {
-          update
-            .transition()
-            .duration(TIEMPO_UPDATE_ETIQUETAS)
-            .attr('x', xEtiquetasAccessor)
-            .attr('y', yEtiquetasAccessor)
-        },
-        exit => {
-          exit
-            .transition()
-            .duration(TIEMPO_REMOVE_ETIQUETAS)
-            .attr('x', screenWidth + margin.right)
-            .remove()
-        });
+    // var etiquetas = grafico
+    //   .select('.grupo-etiquetas')
+    //   .selectAll('.texto-etiqueta')
+    //   .data(data.series, d => d.key)
+    //   .join(
+    //     enter => {
+    //       enter
+    //         .append('text')
+    //         .attr('class', 'texto-etiqueta')
+    //         .attr('x', screenWidth)
+    //         .attr('y', yEtiquetasAccessor)
+    //         .text(d => d.key)
+    //         .style('dominant-baseline', 'central')
+    //         .style('fill', d => color(d.key))
+    //         .transition()
+    //         .duration(TIEMPO_ENTER_ETIQUETAS)
+    //         .attr('x', xEtiquetasAccessor)
+    //     },
+    //     update => {
+    //       update
+    //         .transition()
+    //         .duration(TIEMPO_UPDATE_ETIQUETAS)
+    //         .attr('x', xEtiquetasAccessor)
+    //         .attr('y', yEtiquetasAccessor)
+    //     },
+    //     exit => {
+    //       exit
+    //         .transition()
+    //         .duration(TIEMPO_REMOVE_ETIQUETAS)
+    //         .attr('x', screenWidth + margin.right)
+    //         .remove()
+    //     });
     // FIN DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////
 
     // DIBUJO DE SUMATORIO ETIQUETAS EN FIN DE LAS LINEAS //////////////////////////
+    // claseSumatorio = tooltipInfoSeleccionada ? "total-etiqueta total-etiqueta--seleccion" : "total-etiqueta";
+    // let xSumatorioAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1);
+    // let ySumatorioAccessor = mediaInfoSeleccionada ?
+    //   d => yScale(d.values[d.values.length - 1].media) + 10 : d => yScale(d.values[d.values.length - 1].value) + 10;
+    // let textoSuma = mediaInfoSeleccionada ? d => formatComa(d.values.media) : d => formatComa(d.values.suma);
+
+    // var totalEtiqueta = grafico
+    //   .select('.grupo-etiquetas')
+    //   .selectAll('.total-etiqueta')
+    //   .data(data.series, d => d.key)
+    //   .join(
+    //     enter => {
+    //       enter
+    //         .append('text')
+    //         .attr('class', claseSumatorio)
+    //         .attr('x', screenWidth)
+    //         .attr('y', ySumatorioAccessor)
+    //         .text(textoSuma)
+    //         .style('dominant-baseline', 'central')
+    //         .style('fill', d => color(d.key))
+    //         .transition()
+    //         .duration(TIEMPO_ENTER_ETIQUETAS)
+    //         .attr('x', xSumatorioAccessor)
+    //     },
+    //     update => {
+    //       update
+    //         .attr('class', claseSumatorio)
+    //         .transition()
+    //         .duration(TIEMPO_UPDATE_ETIQUETAS)
+    //         .text(textoSuma)
+    //         .attr('y', ySumatorioAccessor)
+    //         .attr('x', xSumatorioAccessor)
+    //     },
+    //     exit => {
+    //       exit
+    //         .transition()
+    //         .duration(TIEMPO_REMOVE_ETIQUETAS)
+    //         .attr('x', screenWidth + margin.right)
+    //         .remove()
+    //     });
+    // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
     claseSumatorio = tooltipInfoSeleccionada ? "total-etiqueta total-etiqueta--seleccion" : "total-etiqueta";
-    let xSumatorioAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.1);
-    let ySumatorioAccessor = mediaInfoSeleccionada ?
-      d => yScale(d.values[d.values.length - 1].media) + 10 : d => yScale(d.values[d.values.length - 1].value) + 10;
+    let xSumatorioAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.5);
+    let ySumatorioAccessor = (d,i) => (i*45)+25;
+    let textoSuma = mediaInfoSeleccionada ? d => formatComa(d.values.media) : d => formatComa(d.values.suma);
 
     var totalEtiqueta = grafico
       .select('.grupo-etiquetas')
@@ -530,7 +575,7 @@ function multipleLineChart(datos, excluidos) {
             .attr('class', claseSumatorio)
             .attr('x', screenWidth)
             .attr('y', ySumatorioAccessor)
-            .text(d => formatComa(d.values.suma))
+            .text(textoSuma)
             .style('dominant-baseline', 'central')
             .style('fill', d => color(d.key))
             .transition()
@@ -542,6 +587,7 @@ function multipleLineChart(datos, excluidos) {
             .attr('class', claseSumatorio)
             .transition()
             .duration(TIEMPO_UPDATE_ETIQUETAS)
+            .text(textoSuma)
             .attr('y', ySumatorioAccessor)
             .attr('x', xSumatorioAccessor)
         },
@@ -552,7 +598,44 @@ function multipleLineChart(datos, excluidos) {
             .attr('x', screenWidth + margin.right)
             .remove()
         });
-    // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
+
+    // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////
+    let xEtiquetasListAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.5);
+    let yEtiquetasListAccessor = (d,i) => (i*45)+10;
+
+    var etiquetas = grafico
+      .select('.grupo-etiquetas')
+      .selectAll('.texto-etiqueta')
+      .data(data.series, d => d.key)
+      .join(
+        enter => {
+          enter
+            .append('text')
+            .attr('class', 'texto-etiqueta')
+            .attr('x', screenWidth)
+            .attr('y', yEtiquetasListAccessor)
+            .text(d => d.key)
+            .style('dominant-baseline', 'central')
+            .style('fill', d => color(d.key))
+            .transition()
+            .duration(TIEMPO_ENTER_ETIQUETAS)
+            .attr('x', xEtiquetasListAccessor)
+        },
+        update => {
+          update
+            .transition()
+            .duration(TIEMPO_UPDATE_ETIQUETAS)
+            .attr('x', xEtiquetasListAccessor)
+            .attr('y', yEtiquetasListAccessor)
+        },
+        exit => {
+          exit
+            .transition()
+            .duration(TIEMPO_REMOVE_ETIQUETAS)
+            .attr('x', screenWidth + margin.right)
+            .remove()
+        });
+    // FIN DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////
 
     d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   }
@@ -640,7 +723,7 @@ function multipleLineChart(datos, excluidos) {
 }
 
 // Elementos del grupo1 a excluir.
-const arrayExcluidos = ["INACTIVOS"];
+const arrayExcluidos = ["OFICINA 3"];
 
 // Tipeado de valores.
 function type(d) {

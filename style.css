@@ -31,7 +31,7 @@ path {
 }
 
 .texto-etiqueta {
-  font-size: 0.6em;
+  font-size: 0.75em;
   font-weight: bold;
 }
 
@@ -147,7 +147,7 @@ path {
 }
 
 .total-etiqueta {
-  font-size: 0.60em;
+  font-size: 0.75em;
   opacity: 0;
 }
 
