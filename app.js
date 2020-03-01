@@ -98,19 +98,16 @@ function multipleLineChart(datos, excluidos) {
     .append('div')
     .attr('class', 'OpcionFiltrado_media')
     .html('MEDIA')
-  //.style('color', 'black');
 
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_tooltips')
     .html('info')
-  // .style('color', 'black');
 
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_deseleccionar')
     .html('REINICIAR')
-  // .style('color', 'black');
 
   // 4.- Escuchando eventos click en botones con nombre de elementos del grupo1.
   d3.selectAll('.OpcionFiltrado').on('click', click_opciones);
@@ -209,7 +206,6 @@ function multipleLineChart(datos, excluidos) {
       meses: arrayMeses,
       rangoMeses: rangoMeses
     };
-
 
     return lineData;
   }
@@ -320,7 +316,6 @@ function multipleLineChart(datos, excluidos) {
       .domain([0, limiteEjeY])
       .range([height, 0]);
 
-
     yAxis = d3
       .axisLeft(yScale)
       .ticks(TICKS_EJEY)
@@ -351,11 +346,6 @@ function multipleLineChart(datos, excluidos) {
       .line()
       .x(xLineGenAccessor)
       .y(yLineGenAccessor);
-
-    lineGenMedia = d3
-      .line()
-      .x(xLineGenAccessor)
-      .y(yLineGenAccessor)
 
     var lineas = grafico
       .select('.svg-paths')
@@ -628,8 +618,8 @@ function multipleLineChart(datos, excluidos) {
     if (mediaInfoSeleccionada) {
       d3.selectAll('.tooltip').classed('tooltip--seleccion', false);
     }
-    d3.selectAll('.OpcionFiltrado_tooltips--seleccion').classed('OpcionFiltrado_tooltips--seleccion', false);
     tooltipInfoSeleccionada = false;
+    d3.selectAll('.OpcionFiltrado_tooltips--seleccion').classed('OpcionFiltrado_tooltips--seleccion', false);
     d3.selectAll('.OpcionFiltrado--seleccion').classed('OpcionFiltrado--seleccion', false);
     d3.selectAll('.OpcionFiltrado_media').classed('OpcionFiltrado_media--seleccion', mediaInfoSeleccionada);
 
@@ -638,7 +628,7 @@ function multipleLineChart(datos, excluidos) {
 }
 
 // Elementos del grupo1 a excluir.
-const arrayExcluidos = ["OFICINA 3"];
+const arrayExcluidos = ["OFICINA 3", "OFICINA"];
 
 // Tipeado de valores.
 function type(d) {
@@ -659,6 +649,6 @@ function type(d) {
 }
 
 // Cargar datos y mostrar gráfico.
-d3.csv('data/facturacion_reina_2018.csv', type).then(res => {
+d3.csv('data/facturacion_reina_18_19.csv', type).then(res => {
   multipleLineChart(res, arrayExcluidos);
 });
