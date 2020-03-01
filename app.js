@@ -649,6 +649,6 @@ function type(d) {
 }
 
 // Cargar datos y mostrar gráfico.
-d3.csv('data/facturacion_reina_18_19.csv', type).then(res => {
+d3.csv('data/facturacion_18_19.csv', type).then(res => {
   multipleLineChart(res, arrayExcluidos);
 });
