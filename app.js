@@ -8,12 +8,12 @@ function multipleLineChart(datos, excluidos) {
 
   // Dimensiones generales del objeto.
   const screenWidth = 1200,
-    screenHeight = 700;
+    screenHeight = 800;
 
   const margin = {
     top: 40,
     right: 180,
-    bottom: 60,
+    bottom: 120,
     left: 40
   };
   const width = screenWidth - margin.right - margin.left;
@@ -31,6 +31,7 @@ function multipleLineChart(datos, excluidos) {
     .append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`)
     .attr('class', 'line-chart');
+
   const grupoLineas = grafico
     .append('g')
     .attr('class', 'svg-paths');
@@ -61,6 +62,7 @@ function multipleLineChart(datos, excluidos) {
     .axisBottom(xScale)
     .ticks(lineChartData.rangoMeses.length)
     .tickFormat(formatTicksEjeX)
+    .tickSize(6)
     .tickSizeOuter(0);
   const xAxisDraw = grafico
     .append('g')
@@ -68,6 +70,8 @@ function multipleLineChart(datos, excluidos) {
     .attr('class', 'x axis')
     .call(xAxis);
   // FIN DIBUJO EJE X ////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
   // LINEA DE BOTONES CON ELEMENTOS GRUPO1 PARA FILTRADO /////////////////////////////////////////////////////////
   // 1.- Rellenar array de elementos del grupo1.
@@ -107,7 +111,7 @@ function multipleLineChart(datos, excluidos) {
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_deseleccionar')
-    .html('REINICIAR')
+    .html('X')
 
   // 4.- Escuchando eventos click en botones con nombre de elementos del grupo1.
   d3.selectAll('.OpcionFiltrado').on('click', click_opciones);
@@ -119,9 +123,22 @@ function multipleLineChart(datos, excluidos) {
   dibujarLineas(lineChartData);
 
   // Preparar estructura de datos idonea para representación visual.
-  function prepareLineChartData(data) {
+  function prepareLineChartData(datos) {
     let arrayMeses = new Array;
     let rangoMeses = new Array;
+
+    // IMPORTANTE,
+    // A veces, en la recuperacion de las facturas, hay comerciales que usan dos nombres distintos
+    // Digamos en un pedido 1 aparece JUAN DOMICILIADO, y en un pedido 2 aparece JUAN.
+    // Si los pedidos 1 y 2 se facturan en la factura 100, entonces, tras cambiar en el CSV el nombre JUAN DOMICILIADO por JUAN
+    // tendremos dos lineas para la factura 100 que serán idénticas. Esto provocará que aparezca doble el importe en la estadistica.
+    // Para evitar esto usamos la función de abajo sobre el array con todo 'datos'.
+    // La clave aqui es Set, que es una estructura que no acepta duplicados.  
+    // En el caso de estadisticas de facturas, tiene sentido ya que la factura debe ser única.
+    const data = Array.from(new Set(datos.map(a => a.documento)))
+      .map(id => {
+        return datos.find(a => a.documento === id)
+      })
 
     // Ordenamos por mes ascendentemente para que los puntos del eje X ya estén ordenados.
     const dataOrdenadoFecha = data.slice().sort((a, b) => d3.ascending(a.fecha, b.fecha));
@@ -132,8 +149,17 @@ function multipleLineChart(datos, excluidos) {
       .nest()
       .key(d => d.grupo1)
       .key(d => d.yearmonth)
-      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero)))
+      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
       .entries(dataOrdenadoFecha);
+
+    var sumasPorMes = d3
+      .nest()
+      .key(d => d.yearmonth)
+      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
+      .entries(dataOrdenadoFecha);
+
+    var totalPeriodoCompleto = d3
+      .sum(sumasPorMes, d => d.value);
 
     // Separamos en un array aparte todos los meses encontrados en el rango de datos.
     // Esto nos permitirá añadir un valor de 0 en el caso de que un elemento del grupo1 no tenga valores en un determinado mes.
@@ -196,6 +222,8 @@ function multipleLineChart(datos, excluidos) {
     }
     const limiteEjeY = d3.max(maximos);
 
+    var totalMediasPorMes = parseInt(totalPeriodoCompleto / datosGrupo1.length).toFixed(0);
+
     // Datos ordenados de mayor a menor.
     datosGrupo1 = datosGrupo1.slice().sort((a, b) => d3.descending(a.values.suma, b.values.suma));
 
@@ -204,7 +232,11 @@ function multipleLineChart(datos, excluidos) {
       series: datosGrupo1,
       limiteEjeY: limiteEjeY,
       meses: arrayMeses,
-      rangoMeses: rangoMeses
+      rangoMeses: rangoMeses,
+      sumasPorMes: sumasPorMes,
+      totalPeriodoCompleto: totalPeriodoCompleto,
+      totalMediasPorMes: totalMediasPorMes,
+      sumasMensualesLineasSelec: sumasPorMes
     };
 
     return lineData;
@@ -290,6 +322,7 @@ function multipleLineChart(datos, excluidos) {
 
   // Dibujar líneas.
   function dibujarLineas(data) {
+
     const TIEMPO_UPDATE_EJEY = 600
     TIEMPO_ENTER_LINEAS = 600,
       TIEMPO_UPDATE_LINEAS = 600,
@@ -306,6 +339,8 @@ function multipleLineChart(datos, excluidos) {
       RADIO_PUNTOS = 3,
       TICKS_EJEY = 7;
 
+    let arraySumaPuntosMesSeleccionado = new Array;
+
     // ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////////
     if (mediaInfoSeleccionada)
       limiteEjeY = d3.max(data.series, d => d.values.media)
@@ -321,7 +356,8 @@ function multipleLineChart(datos, excluidos) {
       .ticks(TICKS_EJEY)
       .tickFormat(formatTicksEjeY)
       .tickSizeOuter(0)
-      .tickSizeInner(-width);
+      .tickSizeInner(-width)
+      .tickPadding(6);
 
     yAxisDraw = grafico
       .select('.y.axis')
@@ -362,12 +398,13 @@ function multipleLineChart(datos, excluidos) {
             .transition()
             .duration(TIEMPO_ENTER_LINEAS)
             .style('opacity', 1)
+
         },
         update => {
           update
             .transition()
             .duration(TIEMPO_UPDATE_LINEAS)
-            .attr('d', d => lineGen(d.values))
+            .attr('d', d => lineGen(d.values));
         },
         exit => {
           exit
@@ -437,7 +474,7 @@ function multipleLineChart(datos, excluidos) {
               .selectAll('text')
               .data(d => d.values)
               .join('text')
-              .attr('class', 'textopuntos')
+              .attr('class', (d, i) => `textopuntos i${i}`)
               .attr('x', d => xScale(parseInt(d.mes)) + 4)
               .attr('y', d => yScale(d.value) - 7)
               .text(d => formatComa(d.value))
@@ -445,6 +482,8 @@ function multipleLineChart(datos, excluidos) {
               .transition()
               .duration(TIEMPO_ENTER_ETIQUETAS_PUNTOS)
               .style('opacity', 1)
+
+
           },
           update => {
             update
@@ -456,14 +495,16 @@ function multipleLineChart(datos, excluidos) {
               .duration(TIEMPO_UPDATE_ETIQUETAS_PUNTOS)
               .attr('x', d => xScale(parseInt(d.mes)) + 4)
               .attr('y', d => yScale(d.value) - 7)
-              .text(d => formatComa(d.value));
+              .text(d => formatComa(d.value))
           },
           exit => {
             exit
               .transition()
               .duration(TIEMPO_REMOVE_ETIQUETAS_PUNTOS)
               .style('opacity', 0)
-              .remove()
+              .remove();
+
+
           });
     }
     // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
@@ -547,6 +588,80 @@ function multipleLineChart(datos, excluidos) {
         });
     // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
 
+    const grupoSumasMeses = grafico
+      .select('.x.axis')
+      .append('g')
+      .attr('class', 'grupo-sumas-meses')
+      .attr('transform', `translate(0, 0)`);
+
+    const rectSumasParcialesMeses = grupoSumasMeses
+      .selectAll('.rect-sumas-totales-mes')
+      .data(lineChartData.rangoMeses)
+      .join('rect')
+      .attr('class', 'rect-sumas-totales-mes')
+      .attr('x', (d, i) => xScale(i) - 25)
+      .attr('y', 28)
+      .attr('width', 55)
+      .attr('height', 15)
+      .style('fill', 'brown');
+
+    const textSumasParcialesMeses = grupoSumasMeses
+      .selectAll('.textos-sumas-totales-mes')
+      .data(lineChartData.sumasMensualesLineasSelec)
+      .join(
+        enter => {
+          enter
+            .append('text')
+            .attr('class', 'textos-sumas-totales-mes')
+            .attr('x', (d, i) => xScale(i))
+            .attr('y', 40)
+            .text(d => formatComa(d.value))
+            .style('fill', 'white')
+            .style('text-anchor', 'middle');
+        },
+        update => {
+          update
+            .append('text')
+            .attr('class', 'textos-sumas-totales-mes')
+            .attr('x', (d, i) => xScale(i))
+            .attr('y', 40)
+            .text(d => formatComa(d.value))
+            .style('fill', 'white')
+            .style('text-anchor', 'middle');
+        },
+        exit => {
+          exit
+            .remove()
+        }
+      );
+
+    const rectSumasTotalesMeses = grupoSumasMeses
+      .selectAll('.rect-sumas-mes')
+      .data(lineChartData.rangoMeses)
+      .join('rect')
+      .attr('class', 'rect-sumas-mes')
+      .attr('x', (d, i) => xScale(i) - 25)
+      .attr('y', 48)
+      .attr('width', 55)
+      .attr('height', 15)
+      .style('fill', 'purple');
+
+    const textSumasTotalesMeses = grupoSumasMeses
+      .selectAll('.textos-sumas-mes', )
+      .data(lineChartData.sumasPorMes)
+      .join(
+        enter => {
+          enter
+            .append('text')
+            .attr('class', 'textos-sumas-mes')
+            .attr('x', (d, i) => xScale(i))
+            .attr('y', 60)
+            .text(d => formatComa(d.value))
+            .style('fill', 'white')
+            .style('text-anchor', 'middle');
+        }
+      );
+
     d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   }
 
@@ -569,6 +684,33 @@ function multipleLineChart(datos, excluidos) {
       // en que se muestran en los botones para filtrar.
     });
 
+    let sumasMensualesLineasSelec = new Array;
+    let arraySuma = new Array;
+    for (let index = 0; index < lineChartData.meses.length; index++) {
+      sumasMensualesLineasSelec[index] = 0;
+    }
+
+    filtrosSeleccionados = d3
+      .select('.grafico-filtros')
+      .selectAll('.OpcionFiltrado--seleccion');
+    filtrosSeleccionados.each(function (d, i) {
+      for (let index = 0; index < lineChartData.meses.length; index++) {
+        sumasMensualesLineasSelec[index] = sumasMensualesLineasSelec[index] + d.values[index].value;
+      }
+    });
+
+    if (filtrosSeleccionados.empty()) {
+      arraySuma = lineChartData.sumasPorMes;
+    } else {
+      for (let index = 0; index < lineChartData.meses.length; index++) {
+        arraySuma.push({
+          key: lineChartData.meses[index],
+          value: sumasMensualesLineasSelec[index]
+        })
+      }
+    }
+    lineChartData.sumasMensualesLineasSelec = arraySuma;
+
     if (data.length > 0) {
       for (let i = 0; i < data.length; i++) {
         maximos.push(d3.max(data[i].values, d => d.value));
@@ -580,6 +722,7 @@ function multipleLineChart(datos, excluidos) {
         series: data,
         limiteEjeY: limiteEjeY,
       };
+
       dibujarLineas(newlineChartData);
     } else {
       dibujarLineas(lineChartData);
@@ -591,6 +734,7 @@ function multipleLineChart(datos, excluidos) {
 
     if (!seleccionado.empty()) {
       seleccionado.classed('OpcionFiltrado--seleccion', false);
+      lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
       dibujarLineas(lineChartData);
     }
   }
@@ -628,7 +772,7 @@ function multipleLineChart(datos, excluidos) {
 }
 
 // Elementos del grupo1 a excluir.
-const arrayExcluidos = ["OFICINA 3", "OFICINA"];
+const arrayExcluidos = [""];
 
 // Tipeado de valores.
 function type(d) {
@@ -649,6 +793,6 @@ function type(d) {
 }
 
 // Cargar datos y mostrar gráfico.
-d3.csv('data/facturacion_18_19.csv', type).then(res => {
+d3.csv('data/facturacion_19.csv', type).then(res => {
   multipleLineChart(res, arrayExcluidos);
 });

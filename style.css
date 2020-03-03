@@ -15,6 +15,10 @@ path {
   stroke-width: 1.5;
 }
 
+.x.axis text {
+  font-size: 12px;
+}
+
 .domain {
   stroke: black;
   stroke-width: 0.5;
@@ -22,12 +26,18 @@ path {
 
 .x.axis .tick line {
   stroke: black;
+  stroke-width: 0.5;
 }
 
-.axis .tick line {
+.y.axis .tick line {
   stroke: lightgray;
   stroke-width: 0.5;
   stroke-dasharray: 4, 2;
+}
+
+.sumas-meses {
+  /* text-anchor: middle; */
+  font-size: 12px;
 }
 
 .texto-etiqueta {
@@ -76,7 +86,6 @@ path {
   background-color: gold;
   font-weight: bold;
   color: black;
-
 }
 
 .OpcionFiltrado_tooltips {
