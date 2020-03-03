@@ -118,6 +118,19 @@ function multipleLineChart(datos, excluidos) {
   d3.selectAll('.OpcionFiltrado_media').on('click', click_media);
   // FIN LINEA DE BOTONES CON ELEMENTOS DE GRUPO1 PARA FILTRADO ///////////////////////////////////////////////////
 
+  // INICIO DE CONTENEDORES DE ZONA FINAL CON SUMAS PARCIALES EN CADA MES DE LO FILTRADO Y SUMA TOTAL DE CADA MES //
+  const grupoSumasMesesParcial = grafico
+    .select('.x.axis')
+    .append('g')
+    .attr('class', 'grupo-sumas-meses-parcial')
+    .attr('transform', `translate(0, 0)`);
+  const grupoSumasMesesTotales = grafico
+    .select('.x.axis')
+    .append('g')
+    .attr('class', 'grupo-sumas-meses-totales')
+    .attr('transform', `translate(0, 0)`);
+  // FIN DE CONTENEDORES DE ZONA FINAL CON SUMAS PARCIALES EN CADA MES DE LO FILTRADO Y SUMA TOTAL DE CADA MES /////
+
   dibujarLineas(lineChartData);
 
   // Preparar estructura de datos idonea para representación visual.
@@ -587,12 +600,10 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
 
     // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS ///////
-    const grupoSumasMeses = grafico
-      .select('.x.axis')
-      .append('g')
-      .attr('class', 'grupo-sumas-meses')
-      .attr('transform', `translate(0, 0)`);
-    const rectSumasParcialesMeses = grupoSumasMeses
+
+
+    const rectSumasParcialesMeses = grafico
+      .select('.grupo-sumas-meses-parcial')
       .selectAll('.rect-sumas-mes')
       .data(lineChartData.rangoMeses)
       .join('rect')
@@ -602,7 +613,8 @@ function multipleLineChart(datos, excluidos) {
       .attr('width', 55)
       .attr('height', 15)
       .style('fill', 'brown');
-    const textSumasParcialesMeses = grupoSumasMeses
+    const textSumasParcialesMeses = grafico
+      .select('.grupo-sumas-meses-parcial')
       .selectAll('.textos-sumas-mes')
       .data(lineChartData.sumasMensualesLineasSelec)
       .join(
@@ -631,7 +643,10 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
 
     // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS   ///////
-    const rectSumasTotalesMeses = grupoSumasMeses
+
+
+    const rectSumasTotalesMeses = grafico
+      .select('.grupo-sumas-meses-totales')
       .selectAll('.rect-sumas-totales-mes')
       .data(lineChartData.rangoMeses)
       .join('rect')
@@ -642,8 +657,9 @@ function multipleLineChart(datos, excluidos) {
       .attr('height', 15)
       .style('fill', 'purple');
 
-    const textSumasTotalesMeses = grupoSumasMeses
-      .selectAll('.textos--totalessumas-mes', )
+    const textSumasTotalesMeses = grafico
+      .select('.grupo-sumas-meses-totales')
+      .selectAll('.textos-sumas-totales-mes', )
       .data(lineChartData.sumasPorMes)
       .join(
         enter => {
