@@ -71,8 +71,6 @@ function multipleLineChart(datos, excluidos) {
     .call(xAxis);
   // FIN DIBUJO EJE X ////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
   // LINEA DE BOTONES CON ELEMENTOS GRUPO1 PARA FILTRADO /////////////////////////////////////////////////////////
   // 1.- Rellenar array de elementos del grupo1.
   var elementosGrupo1 = new Array;
@@ -588,12 +586,12 @@ function multipleLineChart(datos, excluidos) {
         });
     // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
 
+    // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS ///////
     const grupoSumasMeses = grafico
       .select('.x.axis')
       .append('g')
       .attr('class', 'grupo-sumas-meses')
       .attr('transform', `translate(0, 0)`);
-
     const rectSumasParcialesMeses = grupoSumasMeses
       .selectAll('.rect-sumas-totales-mes')
       .data(lineChartData.rangoMeses)
@@ -604,7 +602,6 @@ function multipleLineChart(datos, excluidos) {
       .attr('width', 55)
       .attr('height', 15)
       .style('fill', 'brown');
-
     const textSumasParcialesMeses = grupoSumasMeses
       .selectAll('.textos-sumas-totales-mes')
       .data(lineChartData.sumasMensualesLineasSelec)
@@ -634,7 +631,9 @@ function multipleLineChart(datos, excluidos) {
             .remove()
         }
       );
+    // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
 
+    // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS   ///////
     const rectSumasTotalesMeses = grupoSumasMeses
       .selectAll('.rect-sumas-mes')
       .data(lineChartData.rangoMeses)
@@ -661,6 +660,7 @@ function multipleLineChart(datos, excluidos) {
             .style('text-anchor', 'middle');
         }
       );
+    // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
 
     d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   }
@@ -675,10 +675,10 @@ function multipleLineChart(datos, excluidos) {
     // Consultar elementos de grupo1 seleccionados para conformar array.
     let arrayElementosGrupo1 = new Array;
 
-    filtrosSeleccionados = d3
+    filtrosOpcionFiltrado= d3
       .select('.grafico-filtros')
       .selectAll('.OpcionFiltrado');
-    filtrosSeleccionados.each(function (d, i) {
+      filtrosOpcionFiltrado.each(function (d, i) {
       selec = d3.select(this).classed('OpcionFiltrado--seleccion');
       if (selec) data.push(lineChartData.series[i]); // IMPORTANTE, preparar orden de elemento grupo1 en lineChartData igual al orden 
       // en que se muestran en los botones para filtrar.
@@ -709,6 +709,7 @@ function multipleLineChart(datos, excluidos) {
         })
       }
     }
+    
     lineChartData.sumasMensualesLineasSelec = arraySuma;
 
     if (data.length > 0) {
