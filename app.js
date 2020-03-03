@@ -593,38 +593,35 @@ function multipleLineChart(datos, excluidos) {
       .attr('class', 'grupo-sumas-meses')
       .attr('transform', `translate(0, 0)`);
     const rectSumasParcialesMeses = grupoSumasMeses
-      .selectAll('.rect-sumas-totales-mes')
+      .selectAll('.rect-sumas-mes')
       .data(lineChartData.rangoMeses)
       .join('rect')
-      .attr('class', 'rect-sumas-totales-mes')
+      .attr('class', 'rect-sumas-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 28)
       .attr('width', 55)
       .attr('height', 15)
       .style('fill', 'brown');
     const textSumasParcialesMeses = grupoSumasMeses
-      .selectAll('.textos-sumas-totales-mes')
+      .selectAll('.textos-sumas-mes')
       .data(lineChartData.sumasMensualesLineasSelec)
       .join(
         enter => {
           enter
             .append('text')
-            .attr('class', 'textos-sumas-totales-mes')
+            .attr('class', 'textos-sumas-mes')
             .attr('x', (d, i) => xScale(i))
             .attr('y', 40)
             .text(d => formatComa(d.value))
             .style('fill', 'white')
-            .style('text-anchor', 'middle');
+            .style('text-anchor', 'middle')
+
         },
         update => {
           update
-            .append('text')
-            .attr('class', 'textos-sumas-totales-mes')
             .attr('x', (d, i) => xScale(i))
             .attr('y', 40)
             .text(d => formatComa(d.value))
-            .style('fill', 'white')
-            .style('text-anchor', 'middle');
         },
         exit => {
           exit
@@ -635,10 +632,10 @@ function multipleLineChart(datos, excluidos) {
 
     // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS   ///////
     const rectSumasTotalesMeses = grupoSumasMeses
-      .selectAll('.rect-sumas-mes')
+      .selectAll('.rect-sumas-totales-mes')
       .data(lineChartData.rangoMeses)
       .join('rect')
-      .attr('class', 'rect-sumas-mes')
+      .attr('class', 'rect-sumas-totales-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 48)
       .attr('width', 55)
@@ -646,13 +643,13 @@ function multipleLineChart(datos, excluidos) {
       .style('fill', 'purple');
 
     const textSumasTotalesMeses = grupoSumasMeses
-      .selectAll('.textos-sumas-mes', )
+      .selectAll('.textos--totalessumas-mes', )
       .data(lineChartData.sumasPorMes)
       .join(
         enter => {
           enter
             .append('text')
-            .attr('class', 'textos-sumas-mes')
+            .attr('class', 'textos-sumas-totales-mes')
             .attr('x', (d, i) => xScale(i))
             .attr('y', 60)
             .text(d => formatComa(d.value))
@@ -675,10 +672,10 @@ function multipleLineChart(datos, excluidos) {
     // Consultar elementos de grupo1 seleccionados para conformar array.
     let arrayElementosGrupo1 = new Array;
 
-    filtrosOpcionFiltrado= d3
+    filtrosOpcionFiltrado = d3
       .select('.grafico-filtros')
       .selectAll('.OpcionFiltrado');
-      filtrosOpcionFiltrado.each(function (d, i) {
+    filtrosOpcionFiltrado.each(function (d, i) {
       selec = d3.select(this).classed('OpcionFiltrado--seleccion');
       if (selec) data.push(lineChartData.series[i]); // IMPORTANTE, preparar orden de elemento grupo1 en lineChartData igual al orden 
       // en que se muestran en los botones para filtrar.
@@ -709,7 +706,7 @@ function multipleLineChart(datos, excluidos) {
         })
       }
     }
-    
+
     lineChartData.sumasMensualesLineasSelec = arraySuma;
 
     if (data.length > 0) {
