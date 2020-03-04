@@ -1,18 +1,18 @@
 // Función principal.
-function multipleLineChart(datos, excluidos) {
+function multipleLineChart(datos, params) {
   // Preparación de datos.
-  const filtroDatos = filterData(datos, excluidos);
+  const filtroDatos = filterData(datos, params.arrayExcluidos);
   const lineChartData = prepareLineChartData(filtroDatos);
   let tooltipInfoSeleccionada = false;
   let mediaInfoSeleccionada = false;
 
   // Dimensiones generales del objeto.
-  const screenWidth = 1200,
-    screenHeight = 800;
+  const screenWidth = 1400,
+    screenHeight = 720;
 
   const margin = {
     top: 40,
-    right: 180,
+    right: 250,
     bottom: 120,
     left: 40
   };
@@ -92,6 +92,7 @@ function multipleLineChart(datos, excluidos) {
     .enter()
     .append('div')
     .attr('class', 'OpcionFiltrado')
+    .attr('id', d => borrarEspacios(d.key))
     .html(d => d.key)
     .style('color', d => color(d.key));
 
@@ -113,6 +114,8 @@ function multipleLineChart(datos, excluidos) {
 
   // 4.- Escuchando eventos click en botones con nombre de elementos del grupo1.
   d3.selectAll('.OpcionFiltrado').on('click', click_opciones);
+  d3.selectAll('.OpcionFiltrado').on('mouseenter', mouseenter);
+  d3.selectAll('.OpcionFiltrado').on('mouseleave', mouseleave);
   d3.selectAll('.OpcionFiltrado_deseleccionar').on('click', click_deseleccionar);
   d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
   d3.selectAll('.OpcionFiltrado_media').on('click', click_media);
@@ -331,6 +334,10 @@ function multipleLineChart(datos, excluidos) {
     return d3.format(",")(d).replace(/,/g, '.')
   }
 
+  function borrarEspacios(d) {
+    return d.replace(/ /g, '');
+  }
+
   // Dibujar líneas.
   function dibujarLineas(data) {
 
@@ -403,6 +410,7 @@ function multipleLineChart(datos, excluidos) {
           enter
             .append('path')
             .attr('class', 'line-series')
+            .attr('id', d => borrarEspacios(d.key))
             .attr('d', d => lineGen(d.values))
             .style('stroke', d => color(d.key))
             .style('opacity', 0)
@@ -438,6 +446,7 @@ function multipleLineChart(datos, excluidos) {
           enter
             .append('g')
             .attr('class', 'puntos')
+            .attr('id', d => borrarEspacios(d.key))
             .style('fill', d => color(d.key))
             .selectAll('circle')
             .data(d => d.values)
@@ -482,6 +491,7 @@ function multipleLineChart(datos, excluidos) {
             enter
               .append('g')
               .attr('class', claseGrupoTooltip)
+              .attr('id', d => borrarEspacios(d.key))
               .selectAll('text')
               .data(d => d.values)
               .join('text')
@@ -522,7 +532,7 @@ function multipleLineChart(datos, excluidos) {
 
     // DIBUJO DE ETIQUETAS EN FIN DE LAS LINEAS ////////////////////////////////////
     let xEtiquetasListAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.5);
-    let yEtiquetasListAccessor = (d, i) => (i * 45) + 10;
+    let yEtiquetasListAccessor = (d, i) => (i * 45) + 2;
 
     var etiquetas = grafico
       .select('.grupo-etiquetas')
@@ -560,7 +570,7 @@ function multipleLineChart(datos, excluidos) {
 
     // DIBUJO DE SUMATORIO ETIQUETAS EN FIN DE LAS LINEAS //////////////////////////
     let xSumatorioAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.5);
-    let ySumatorioAccessor = (d, i) => (i * 45) + 25;
+    let ySumatorioAccessor = (d, i) => (i * 45) + 17;
     let textoSuma = mediaInfoSeleccionada ? d => formatComa(d.values.media) : d => formatComa(d.values.suma);
 
     var totalEtiqueta = grafico
@@ -600,8 +610,6 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE SUMATORIO ETIQUETAS SOBRE LOS PUNTOS //////////////////////////
 
     // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS ///////
-
-
     const rectSumasParcialesMeses = grafico
       .select('.grupo-sumas-meses-parcial')
       .selectAll('.rect-sumas-mes')
@@ -610,7 +618,7 @@ function multipleLineChart(datos, excluidos) {
       .attr('class', 'rect-sumas-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 28)
-      .attr('width', 55)
+      .attr('width', width / (lineChartData.rangoMeses.length) - 5)
       .attr('height', 15)
       .style('fill', 'brown');
     const textSumasParcialesMeses = grafico
@@ -622,7 +630,7 @@ function multipleLineChart(datos, excluidos) {
           enter
             .append('text')
             .attr('class', 'textos-sumas-mes')
-            .attr('x', (d, i) => xScale(i))
+            .attr('x', (d, i) => xScale(i) + 5)
             .attr('y', 40)
             .text(d => formatComa(d.value))
             .style('fill', 'white')
@@ -631,7 +639,7 @@ function multipleLineChart(datos, excluidos) {
         },
         update => {
           update
-            .attr('x', (d, i) => xScale(i))
+            .attr('x', (d, i) => xScale(i) + 5)
             .attr('y', 40)
             .text(d => formatComa(d.value))
         },
@@ -643,8 +651,6 @@ function multipleLineChart(datos, excluidos) {
     // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
 
     // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS   ///////
-
-
     const rectSumasTotalesMeses = grafico
       .select('.grupo-sumas-meses-totales')
       .selectAll('.rect-sumas-totales-mes')
@@ -653,7 +659,7 @@ function multipleLineChart(datos, excluidos) {
       .attr('class', 'rect-sumas-totales-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 48)
-      .attr('width', 55)
+      .attr('width', width / (lineChartData.rangoMeses.length) - 5)
       .attr('height', 15)
       .style('fill', 'purple');
 
@@ -666,11 +672,11 @@ function multipleLineChart(datos, excluidos) {
           enter
             .append('text')
             .attr('class', 'textos-sumas-totales-mes')
-            .attr('x', (d, i) => xScale(i))
+            .attr('x', (d, i) => xScale(i) + 5)
             .attr('y', 60)
             .text(d => formatComa(d.value))
             .style('fill', 'white')
-            .style('text-anchor', 'middle');
+            .style('text-anchor', 'middle')
         }
       );
     // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
@@ -783,10 +789,54 @@ function multipleLineChart(datos, excluidos) {
 
     dibujarLineas(lineChartData);
   }
+
+  function mouseenter() {
+
+    _this = this
+    const id = _this.id;
+
+    const visible = d3.select(`.line-series#${id}`).empty();
+
+    if (!visible) {
+      const lineas = grafico
+        .select('.svg-paths')
+        .selectAll(`path:not(#${_this.id})`)
+        .style('opacity', '0.1');
+
+      const puntos = grafico
+        .selectAll(`.puntos:not(#${_this.id})`)
+        .style('opacity', '0.1');
+
+      const textos = grafico
+        .selectAll(`.tooltip:not(#${_this.id})`)
+        .style('opacity', '0.1');
+
+    }
+  }
+
+  function mouseleave() {
+    _this = this;
+
+    const test = grafico
+      .select('.svg-paths')
+      .selectAll(`path:not(#${_this.id})`)
+      .style('opacity', '1');
+
+    const puntos = grafico
+      .selectAll(`.puntos:not(#${_this.id})`)
+      .style('opacity', '1');
+
+    const textos = grafico
+      .selectAll(`.tooltip:not(#${_this.id})`)
+      .style('opacity', '1');
+  }
 }
 
 // Elementos del grupo1 a excluir.
-const arrayExcluidos = [""];
+const parametros = {
+  arrayExcluidos: ["OFICINA 3", "INACTIVOS"],
+  documentoUnico: 1,
+}
 
 // Tipeado de valores.
 function type(d) {
@@ -808,5 +858,5 @@ function type(d) {
 
 // Cargar datos y mostrar gráfico.
 d3.csv('data/facturacion_19.csv', type).then(res => {
-  multipleLineChart(res, arrayExcluidos);
+  multipleLineChart(res, parametros);
 });

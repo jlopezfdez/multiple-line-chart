@@ -15,8 +15,13 @@ path {
   stroke-width: 1.5;
 }
 
-.x.axis text {
+.x.axis {
   font-size: 12px;
+}
+
+.grupo-sumas-meses-parcial {
+  font-size: 12px;
+
 }
 
 .domain {
@@ -35,9 +40,8 @@ path {
   stroke-dasharray: 4, 2;
 }
 
-.sumas-meses {
-  /* text-anchor: middle; */
-  font-size: 12px;
+g.y.axis {
+  font-size: 10px;
 }
 
 .texto-etiqueta {
@@ -157,7 +161,14 @@ path {
   font-size: 0.75em;
 }
 
-
 .line-series {
+  opacity: 1;
   fill: none;
 }
+
+.line-series-hide {
+  opacity: 0;
+}
+
+
+
