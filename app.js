@@ -620,7 +620,7 @@ function multipleLineChart(datos, params) {
       .attr('y', 28)
       .attr('width', width / (lineChartData.rangoMeses.length) - 20)
       .attr('height', 15)
-      .style('fill', 'brown');
+      .style('fill', '#2d9e91');
 
 
     const textSumasParcialesMeses = grafico
@@ -660,7 +660,7 @@ function multipleLineChart(datos, params) {
       .attr('y', 28)
       .attr('width', width / (lineChartData.rangoMeses.length) - 20)
       .attr('height', 15)
-      .style('fill', '#de4142');
+      .style('fill', '#59cabd');
 
     const textTotalSumasParcialesMeses = grafico
       .select('.grupo-sumas-meses-parcial')
@@ -668,7 +668,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'texto-total-selec-sumas-mes')
       .attr('x', d => xScale(lineChartData.rangoMeses.length) + 5)
       .attr('y', 40)
-      .text(d3.sum(lineChartData.sumasMensualesLineasSelec, d => d.value))
+      .text(formatComa(d3.sum(lineChartData.sumasMensualesLineasSelec, d => d.value)))
       .style('fill', 'white')
       .style('text-anchor', 'middle');
 
@@ -721,7 +721,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'texto-total')
       .attr('x', d => xScale(lineChartData.rangoMeses.length) + 5)
       .attr('y', 60)
-      .text(lineChartData.totalPeriodoCompleto)
+      .text(formatComa(lineChartData.totalPeriodoCompleto))
       .style('fill', 'white')
       .style('text-anchor', 'middle');
     // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
