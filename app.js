@@ -618,9 +618,11 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-sumas-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 28)
-      .attr('width', width / (lineChartData.rangoMeses.length) - 5)
+      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
       .attr('height', 15)
       .style('fill', 'brown');
+
+
     const textSumasParcialesMeses = grafico
       .select('.grupo-sumas-meses-parcial')
       .selectAll('.textos-sumas-mes')
@@ -648,6 +650,28 @@ function multipleLineChart(datos, params) {
             .remove()
         }
       );
+
+    // ULTIMO CAMPO DESPUES DE LOS MESES PARA MOSTRAR EL TOTAL PARCIAL SELECCIONADO
+    const rectTotalSumasParcialesMeses = grafico
+      .select('.grupo-sumas-meses-parcial')
+      .append('rect')
+      .attr('class', 'rect-total-selec-sumas-mes')
+      .attr('x', d => xScale(lineChartData.rangoMeses.length) - 25)
+      .attr('y', 28)
+      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
+      .attr('height', 15)
+      .style('fill', '#de4142');
+
+    const textTotalSumasParcialesMeses = grafico
+      .select('.grupo-sumas-meses-parcial')
+      .append('text')
+      .attr('class', 'texto-total-selec-sumas-mes')
+      .attr('x', d => xScale(lineChartData.rangoMeses.length) + 5)
+      .attr('y', 40)
+      .text(d3.sum(lineChartData.sumasMensualesLineasSelec, d => d.value))
+      .style('fill', 'white')
+      .style('text-anchor', 'middle');
+
     // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS MENSUALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
 
     // INICIO DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS   ///////
@@ -659,7 +683,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-sumas-totales-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 48)
-      .attr('width', width / (lineChartData.rangoMeses.length) - 5)
+      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
       .attr('height', 15)
       .style('fill', 'purple');
 
@@ -679,6 +703,27 @@ function multipleLineChart(datos, params) {
             .style('text-anchor', 'middle')
         }
       );
+
+    // ULTIMO CAMPO DESPUES DE LOS MESES PARA MOSTRAR LA SUMA TOTAL DE TODOS LOS MESES
+    const rectTotalSumasTotalesMeses = grafico
+      .select('.grupo-sumas-meses-totales')
+      .append('rect')
+      .attr('class', 'rect-total')
+      .attr('x', (d, i) => xScale(lineChartData.rangoMeses.length) - 25)
+      .attr('y', 48)
+      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
+      .attr('height', 15)
+      .style('fill', '#d046d0');
+
+    const textTotalSumasTotalesMeses = grafico
+      .select('.grupo-sumas-meses-totales')
+      .append('text')
+      .attr('class', 'texto-total')
+      .attr('x', d => xScale(lineChartData.rangoMeses.length) + 5)
+      .attr('y', 60)
+      .text(lineChartData.totalPeriodoCompleto)
+      .style('fill', 'white')
+      .style('text-anchor', 'middle');
     // FIN DIBUJO DE RECTÁNGULOS Y TEXTOS CON SUMAS TOTALES DE ELEMENTOS GRUPO SELECCIONADOS    ///////
 
     d3.selectAll('.OpcionFiltrado_tooltips').on('click', click_tooltips);
@@ -791,7 +836,6 @@ function multipleLineChart(datos, params) {
   }
 
   function mouseenter() {
-
     _this = this
     const id = _this.id;
 
@@ -800,34 +844,30 @@ function multipleLineChart(datos, params) {
     if (!visible) {
       const lineas = grafico
         .select('.svg-paths')
-        .selectAll(`path:not(#${_this.id})`)
+        .selectAll(`path:not(#${id})`)
         .style('opacity', '0.1');
-
       const puntos = grafico
-        .selectAll(`.puntos:not(#${_this.id})`)
+        .selectAll(`.puntos:not(#${id})`)
         .style('opacity', '0.1');
-
       const textos = grafico
-        .selectAll(`.tooltip:not(#${_this.id})`)
+        .selectAll(`.tooltip:not(#${id})`)
         .style('opacity', '0.1');
-
     }
   }
 
   function mouseleave() {
     _this = this;
+    const id = _this.id;
 
     const test = grafico
       .select('.svg-paths')
-      .selectAll(`path:not(#${_this.id})`)
+      .selectAll(`path:not(#${id})`)
       .style('opacity', '1');
-
     const puntos = grafico
-      .selectAll(`.puntos:not(#${_this.id})`)
+      .selectAll(`.puntos:not(#${id})`)
       .style('opacity', '1');
-
     const textos = grafico
-      .selectAll(`.tooltip:not(#${_this.id})`)
+      .selectAll(`.tooltip:not(#${id})`)
       .style('opacity', '1');
   }
 }
