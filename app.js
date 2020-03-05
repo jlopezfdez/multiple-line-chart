@@ -8,7 +8,7 @@ function multipleLineChart(datos, params) {
 
   // Dimensiones generales del objeto.
   const screenWidth = 1400,
-    screenHeight = 720;
+    screenHeight = 900;
 
   const margin = {
     top: 40,
@@ -874,7 +874,7 @@ function multipleLineChart(datos, params) {
 
 // Elementos del grupo1 a excluir.
 const parametros = {
-  arrayExcluidos: ["OFICINA 3", "INACTIVOS"],
+  arrayExcluidos: ["OFICINA 3", "SIN ASIGNAR"],
   documentoUnico: 1,
 }
 
@@ -897,6 +897,6 @@ function type(d) {
 }
 
 // Cargar datos y mostrar gráfico.
-d3.csv('data/facturacion_19.csv', type).then(res => {
+d3.csv('data/recargos_2019_ene_dic_con_clientes.csv', type).then(res => {
   multipleLineChart(res, parametros);
 });

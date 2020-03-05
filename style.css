@@ -1,6 +1,13 @@
 body {
   letter-spacing: -.014em;
   font-family: 'Avenir', sans-serif;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.break {
+  flex-basis: 100%;
+  height: 0;
 }
 
 svg {
@@ -45,27 +52,26 @@ g.y.axis {
 }
 
 .texto-etiqueta {
-  font-size: 0.75em;
+  font-size: 0.85em;
   font-weight: bold;
 }
 
 .header {
   font-size: 1em;
+  padding-bottom: 5px;
+  margin-bottom: -5px;
   fill: #555;
 }
 
 .subheader {
-  font-size: 0.8em;
+  font-size: 0.9em;
   fill: #555;
 }
 
 .grafico-filtros {
   margin-bottom: 5px;
   margin-top: 5px;
-}
-
-.grafico-cabecera {
-  margin-bottom: -5px;
+  display: inline-block;
 }
 
 .OpcionFiltrado {
@@ -75,7 +81,7 @@ g.y.axis {
   margin-right: 1px;
   margin-top: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   background-color: white;
 }
 
@@ -86,7 +92,7 @@ g.y.axis {
   margin-right: 1px;
   margin-top: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   background-color: gold;
   font-weight: bold;
   color: black;
@@ -99,7 +105,7 @@ g.y.axis {
   margin-right: 1px;
   margin-top: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   background-color: white;
   font-weight: bold;
   color: black;
@@ -112,7 +118,7 @@ g.y.axis {
   margin-right: 1px;
   margin-top: 10px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   background-color: white;
   font-weight: bold;
   color: black;
@@ -146,7 +152,7 @@ g.y.axis {
 }
 
 .textopuntos {
-  font-size: 0.5em;
+  font-size: 0.6em;
 }
 
 .tooltip {
@@ -158,7 +164,7 @@ g.y.axis {
 }
 
 .total-etiqueta {
-  font-size: 0.75em;
+  font-size: 0.85em;
 }
 
 .line-series {
@@ -170,5 +176,7 @@ g.y.axis {
   opacity: 0;
 }
 
-
-
+.grafico-zona-resumen {
+  padding-left: 30px;
+  padding-top: 30px;
+}
