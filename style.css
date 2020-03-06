@@ -176,7 +176,31 @@ g.y.axis {
   opacity: 0;
 }
 
-.grafico-zona-resumen {
-  padding-left: 30px;
-  padding-top: 30px;
+.grafico-zona-resumen-cabecera {
+  padding-top: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
 }
+.grafico-zona-resumen {
+  width: 400px;
+  height: 750px;
+  flex-wrap: wrap;
+  padding-top: 3px;
+  font-size: 12px;
+  display: block;
+  overflow: auto;
+}
+
+.elto-zona-top {
+  font-size: 1em;
+  font-weight: normal;
+  margin-bottom: 1px;
+  background: #f7f7f7;
+}
+
+.elto-zona-top:nth-of-type(even) {
+  background: #e0e0e0;
+}
+
+

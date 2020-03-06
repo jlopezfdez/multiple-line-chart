@@ -5,16 +5,17 @@ function multipleLineChart(datos, params) {
   const lineChartData = prepareLineChartData(filtroDatos);
   let tooltipInfoSeleccionada = false;
   let mediaInfoSeleccionada = false;
+  let topValoresGrupo2 = new Array;
 
   // Dimensiones generales del objeto.
-  const screenWidth = 1400,
-    screenHeight = 900;
+  const screenWidth = 1200,
+    screenHeight = 860;
 
   const margin = {
     top: 40,
     right: 250,
     bottom: 120,
-    left: 40
+    left: 50
   };
   const width = screenWidth - margin.right - margin.left;
   const height = screenHeight - margin.top - margin.bottom;
@@ -134,12 +135,53 @@ function multipleLineChart(datos, params) {
     .attr('transform', `translate(0, 0)`);
   // FIN DE CONTENEDORES DE ZONA FINAL CON SUMAS PARCIALES EN CADA MES DE LO FILTRADO Y SUMA TOTAL DE CADA MES /////
 
+  // ZONA DE TOP VENTAS, MOSTRANDO INICIALMENTE LAS 50 MEJORES DE TODOS LOS ELEMENTOS DEL GRUPO 1 //////////////////
+
+  var zonaTopVentas = d3
+    .select('.grafico-zona-resumen');
+
+  var topValores = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
+ // topValores.splice(45);
+
+  update_zona_top(topValores);
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   dibujarLineas(lineChartData);
 
+  function update_zona_top(data) {
+    var eltosZonaTopVentas = zonaTopVentas
+      .selectAll('div.elto-zona-top')
+      .data(data, d => d.id)
+      .join(
+        enter => {
+          enter
+            .append('div')
+            .style('display', 'flex')
+            .attr('class', 'elto-zona-top')
+            .html(d => `[${d.key}]&nbsp;`)
+            .style('color', d => d.colorkey)
+            .append('div')
+            .style('display', 'flex')
+            .html(d => `${d.cliente}&nbsp;`)
+            .style('color', 'black')
+            .append('div')
+            .style('display', 'flex')
+            .html(d => `${formatComa(d.suma)}`)
+            .style('color', 'blue')
+           
+        },
+        update => {
+        },
+        exit => {
+          exit
+            .remove()
+        });
+  }
   // Preparar estructura de datos idonea para representación visual.
   function prepareLineChartData(datos) {
     let arrayMeses = new Array;
     let rangoMeses = new Array;
+    let datosCompletosGrupo2 = new Array;
 
     // IMPORTANTE,
     // A veces, en la recuperacion de las facturas, hay comerciales que usan dos nombres distintos
@@ -152,7 +194,7 @@ function multipleLineChart(datos, params) {
     const data = Array.from(new Set(datos.map(a => a.documento)))
       .map(id => {
         return datos.find(a => a.documento === id)
-      })
+      });
 
     // Ordenamos por mes ascendentemente para que los puntos del eje X ya estén ordenados.
     const dataOrdenadoFecha = data.slice().sort((a, b) => d3.ascending(a.fecha, b.fecha));
@@ -166,10 +208,12 @@ function multipleLineChart(datos, params) {
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
       .entries(dataOrdenadoFecha);
 
+
+
     var sumasPorMes = d3
       .nest()
       .key(d => d.yearmonth)
-      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
+      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO, REDONDEA POR ENCIMA O POR DEBAJO.
       .entries(dataOrdenadoFecha);
 
     var totalPeriodoCompleto = d3
@@ -241,9 +285,51 @@ function multipleLineChart(datos, params) {
     // Datos ordenados de mayor a menor.
     datosGrupo1 = datosGrupo1.slice().sort((a, b) => d3.descending(a.values.suma, b.values.suma));
 
+    //////
+    var datosGrupo2 = d3
+      .nest()
+      .key(d => d.grupo1)
+      .key(d => d.grupo2)
+      .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
+      .entries(dataOrdenadoFecha);
+    for (let index = 0; index < datosGrupo2.length; index++) {
+      datosGrupo2[index].values.sort((a, b) => b.value - a.value);
+    }
+
+    // Array con los elementos del grupo1
+    var elementosGrupo1 = new Array;
+    for (let index = 0; index < datosGrupo1.length; index++) {
+      elementosGrupo1.push(datosGrupo1[index].key);
+    }
+
+    color = d3.scaleOrdinal()
+      .domain(elementosGrupo1)
+      .range(d3.schemeCategory10);
+
+    let contador = 1;
+
+    for (let index = 0; index < datosGrupo2.length; index++) {
+      for (let j = 0; j < datosGrupo2[index].values.length; j++) {
+        eltogrupo1 = datosGrupo2[index];
+
+        datosCompletosGrupo2.push({
+          id: contador, // Necesario para identificar únicamente cada entrada.
+          key: eltogrupo1.key,
+          colorkey: color(eltogrupo1.key),
+          cliente: eltogrupo1.values[j].key,
+          suma: eltogrupo1.values[j].value
+        });
+        contador++;
+      }
+    }
+    datosCompletosGrupo2.sort((a, b) => b.suma - a.suma);
+    /////
+
     // Producción de datos finales para su posterior dibujo.
     const lineData = {
       series: datosGrupo1,
+      seriesmensual_g1_g2: datosGrupo2,
+      seriescompletas_g1_g2: datosCompletosGrupo2,
       limiteEjeY: limiteEjeY,
       meses: arrayMeses,
       rangoMeses: rangoMeses,
@@ -353,7 +439,7 @@ function multipleLineChart(datos, params) {
       TIEMPO_REMOVE_ETIQUETAS_PUNTOS = 400,
       TIEMPO_ENTER_ETIQUETAS = 600,
       TIEMPO_UPDATE_ETIQUETAS = 600,
-      TIEMPO_REMOVE_ETIQUETAS = 400,
+      TIEMPO_REMOVE_ETIQUETAS = 600,
       RADIO_PUNTOS = 3,
       TICKS_EJEY = 7;
 
@@ -732,6 +818,11 @@ function multipleLineChart(datos, params) {
   function click_opciones() {
     let data = new Array;
     let maximos = new Array;
+    let eltosGrupo1Seleccionados = new Array;
+    let topValoresGrupo2 = new Array;
+    let _lineChartData = new Array;
+
+    let longitudLineCharData = lineChartData.meses.length;
 
     const seleccionado = d3.select(this).classed('OpcionFiltrado--seleccion')
     d3.select(this).classed('OpcionFiltrado--seleccion', !seleccionado);
@@ -744,13 +835,17 @@ function multipleLineChart(datos, params) {
       .selectAll('.OpcionFiltrado');
     filtrosOpcionFiltrado.each(function (d, i) {
       selec = d3.select(this).classed('OpcionFiltrado--seleccion');
-      if (selec) data.push(lineChartData.series[i]); // IMPORTANTE, preparar orden de elemento grupo1 en lineChartData igual al orden 
-      // en que se muestran en los botones para filtrar.
+      if (selec) {
+
+        var elto = lineChartData.series.filter(t => t.key == d.key);
+        data.push(elto[0]);
+        eltosGrupo1Seleccionados.push(elto[0].key);
+      }
     });
 
     let sumasMensualesLineasSelec = new Array;
     let arraySuma = new Array;
-    for (let index = 0; index < lineChartData.meses.length; index++) {
+    for (let index = 0; index < longitudLineCharData; index++) {
       sumasMensualesLineasSelec[index] = 0;
     }
 
@@ -758,7 +853,7 @@ function multipleLineChart(datos, params) {
       .select('.grafico-filtros')
       .selectAll('.OpcionFiltrado--seleccion');
     filtrosSeleccionados.each(function (d, i) {
-      for (let index = 0; index < lineChartData.meses.length; index++) {
+      for (let index = 0; index < longitudLineCharData; index++) {
         sumasMensualesLineasSelec[index] = sumasMensualesLineasSelec[index] + d.values[index].value;
       }
     });
@@ -766,14 +861,13 @@ function multipleLineChart(datos, params) {
     if (filtrosSeleccionados.empty()) {
       arraySuma = lineChartData.sumasPorMes;
     } else {
-      for (let index = 0; index < lineChartData.meses.length; index++) {
+      for (let index = 0; index < longitudLineCharData; index++) {
         arraySuma.push({
           key: lineChartData.meses[index],
           value: sumasMensualesLineasSelec[index]
         })
       }
     }
-
     lineChartData.sumasMensualesLineasSelec = arraySuma;
 
     if (data.length > 0) {
@@ -788,8 +882,19 @@ function multipleLineChart(datos, params) {
         limiteEjeY: limiteEjeY,
       };
 
+      _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
+      topValoresGrupo2 = _lineChartData.filter(d => eltosGrupo1Seleccionados.includes(d.key));
+      //topValoresGrupo2.splice(45);
+
+      update_zona_top(topValoresGrupo2);
+
       dibujarLineas(newlineChartData);
     } else {
+      _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
+      topValoresGrupo2 = _lineChartData;
+      //topValoresGrupo2.splice(45);
+
+      update_zona_top(topValoresGrupo2);
       dibujarLineas(lineChartData);
     }
   }
@@ -800,6 +905,12 @@ function multipleLineChart(datos, params) {
     if (!seleccionado.empty()) {
       seleccionado.classed('OpcionFiltrado--seleccion', false);
       lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
+
+      _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
+      topValoresGrupo2 = _lineChartData;
+      //topValoresGrupo2.splice(45);
+
+      update_zona_top(topValoresGrupo2);
       dibujarLineas(lineChartData);
     }
   }
@@ -892,7 +1003,8 @@ function type(d) {
     dia: parseDate(d.fecha).getDate(),
     fecha: parseDate(d.fecha),
     yearmonth: formatYear(parseDate(d.fecha)),
-    grupo1: parseNA(d.grupo1)
+    grupo1: parseNA(d.grupo1),
+    grupo2: parseNA(d.nombrecliente),
   };
 }
 
