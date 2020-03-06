@@ -141,7 +141,7 @@ function multipleLineChart(datos, params) {
     .select('.grafico-zona-resumen');
 
   var topValores = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
- // topValores.splice(45);
+  // topValores.splice(45);
 
   update_zona_top(topValores);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,13 +162,14 @@ function multipleLineChart(datos, params) {
             .style('color', d => d.colorkey)
             .append('div')
             .style('display', 'flex')
+            .attr('class', 'elto-grupo1-zona-top')
             .html(d => `${d.cliente}&nbsp;`)
             .style('color', 'black')
             .append('div')
             .style('display', 'flex')
+            .attr('class', 'elto-suma-zona-top')
             .html(d => `${formatComa(d.suma)}`)
             .style('color', 'blue')
-           
         },
         update => {
         },
