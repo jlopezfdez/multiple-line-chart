@@ -3,9 +3,8 @@ function multipleLineChart(datos, params) {
   // Preparación de datos.
   const filtroDatos = filterData(datos, params.arrayExcluidos);
   const lineChartData = prepareLineChartData(filtroDatos);
-  let tooltipInfoSeleccionada = false;
-  let mediaInfoSeleccionada = false;
-  let topValoresGrupo2 = new Array;
+  let tooltipInfoSeleccionada = false,
+    mediaInfoSeleccionada = false;
 
   // Dimensiones generales del objeto.
   const screenWidth = 1200,
@@ -78,6 +77,7 @@ function multipleLineChart(datos, params) {
   for (let index = 0; index < lineChartData.series.length; index++) {
     elementosGrupo1.push(lineChartData.series[index].key);
   }
+
   // 2.- Función para asignar colores a campo de grupo1.
   color = d3.scaleOrdinal()
     .domain(elementosGrupo1)
@@ -97,7 +97,7 @@ function multipleLineChart(datos, params) {
     .html(d => d.key)
     .style('color', d => color(d.key));
 
-  // Boton para media, tootips y para deseleccionar todos los filtros marcados.
+  // Boton para media, info en circulos de cada mes, y para deseleccionar todos los filtros marcados.
   graficoFiltros
     .append('div')
     .attr('class', 'OpcionFiltrado_media')
@@ -135,44 +135,33 @@ function multipleLineChart(datos, params) {
     .attr('transform', `translate(0, 0)`);
   // FIN DE CONTENEDORES DE ZONA FINAL CON SUMAS PARCIALES EN CADA MES DE LO FILTRADO Y SUMA TOTAL DE CADA MES /////
 
-  // ZONA DE TOP VENTAS, MOSTRANDO INICIALMENTE LAS 50 MEJORES DE TODOS LOS ELEMENTOS DEL GRUPO 1 //////////////////
-
-  var zonaTopVentas = d3
-    .select('.grafico-zona-resumen');
-
-  var topValores = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
-  // topValores.splice(45);
-
-  update_zona_top(topValores);
+  // DIBUJAR TABLA CON TOTALES GRUPO2 //////////////////
+  var _linechardata_copia = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
+  update_totales_grupo2(_linechardata_copia);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   dibujarLineas(lineChartData);
 
-  function update_zona_top(data) {
-    var eltosZonaTopVentas = zonaTopVentas
+  function update_totales_grupo2(data) {
+    var eltosZonaTopVentas = d3
+      .select('.grafico-zona-resumen')
       .selectAll('div.elto-zona-top')
       .data(data, d => d.id)
       .join(
         enter => {
           enter
             .append('div')
-            .style('display', 'flex')
             .attr('class', 'elto-zona-top')
             .html(d => `[${d.key}]&nbsp;`)
             .style('color', d => d.colorkey)
             .append('div')
-            .style('display', 'flex')
             .attr('class', 'elto-grupo1-zona-top')
             .html(d => `${d.cliente}&nbsp;`)
-            .style('color', 'black')
             .append('div')
-            .style('display', 'flex')
             .attr('class', 'elto-suma-zona-top')
             .html(d => `${formatComa(d.suma)}`)
-            .style('color', 'blue')
         },
-        update => {
-        },
+        update => {},
         exit => {
           exit
             .remove()
@@ -208,8 +197,6 @@ function multipleLineChart(datos, params) {
       .key(d => d.yearmonth)
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
       .entries(dataOrdenadoFecha);
-
-
 
     var sumasPorMes = d3
       .nest()
@@ -286,16 +273,13 @@ function multipleLineChart(datos, params) {
     // Datos ordenados de mayor a menor.
     datosGrupo1 = datosGrupo1.slice().sort((a, b) => d3.descending(a.values.suma, b.values.suma));
 
-    //////
+    ////// Agrupamos por criterio grupo1, y luego grupo2. Despues ordenamos ascendentemente.
     var datosGrupo2 = d3
       .nest()
       .key(d => d.grupo1)
       .key(d => d.grupo2)
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
       .entries(dataOrdenadoFecha);
-    for (let index = 0; index < datosGrupo2.length; index++) {
-      datosGrupo2[index].values.sort((a, b) => b.value - a.value);
-    }
 
     // Array con los elementos del grupo1
     var elementosGrupo1 = new Array;
@@ -307,8 +291,8 @@ function multipleLineChart(datos, params) {
       .domain(elementosGrupo1)
       .range(d3.schemeCategory10);
 
+    // A los datos del grupo 2, le añadimos un campo ID para su identificacion única.
     let contador = 1;
-
     for (let index = 0; index < datosGrupo2.length; index++) {
       for (let j = 0; j < datosGrupo2[index].values.length; j++) {
         eltogrupo1 = datosGrupo2[index];
@@ -352,8 +336,7 @@ function multipleLineChart(datos, params) {
     });
   }
 
-  // Utilidades de dibujo
-  // Para cambiar la etiqueta del eje X, y no poner los meses del 0 al 11 sino con las tres primeras letras del mes.
+  // Cambiar la etiqueta del eje X, y no poner los meses del 0 al 11 sino con las tres primeras letras del mes.
   function formatTicksEjeX(numeroMes) {
 
     // Controlamos que el mes pasado se encuentre en los meses posibles 
@@ -407,7 +390,6 @@ function multipleLineChart(datos, params) {
   }
 
   // Cambio en los textos predefinidos por D3 para los ticks de los ejes del gráfico.
-  // En el caso de miles utiliza la letra k, en este caso la ocultamos.
   function formatTicksEjeY(d) {
     return d3
       .format('~s')(d)
@@ -425,7 +407,6 @@ function multipleLineChart(datos, params) {
     return d.replace(/ /g, '');
   }
 
-  // Dibujar líneas.
   function dibujarLineas(data) {
 
     const TIEMPO_UPDATE_EJEY = 600
@@ -444,7 +425,7 @@ function multipleLineChart(datos, params) {
       RADIO_PUNTOS = 3,
       TICKS_EJEY = 7;
 
-    let arraySumaPuntosMesSeleccionado = new Array;
+    let longArrayRangoMeses = lineChartData.rangoMeses.length;
 
     // ESCALA Y DIBUJO EJE Y //////////////////////////////////////////////////////////
     if (mediaInfoSeleccionada)
@@ -504,7 +485,6 @@ function multipleLineChart(datos, params) {
             .transition()
             .duration(TIEMPO_ENTER_LINEAS)
             .style('opacity', 1)
-
         },
         update => {
           update
@@ -548,7 +528,6 @@ function multipleLineChart(datos, params) {
         },
         update => {
           update
-            //.style('fill', d => color(d.key))
             .selectAll('circle')
             .data(d => d.values)
             .join('circle')
@@ -590,8 +569,6 @@ function multipleLineChart(datos, params) {
               .transition()
               .duration(TIEMPO_ENTER_ETIQUETAS_PUNTOS)
               .style('opacity', 1)
-
-
           },
           update => {
             update
@@ -611,8 +588,6 @@ function multipleLineChart(datos, params) {
               .duration(TIEMPO_REMOVE_ETIQUETAS_PUNTOS)
               .style('opacity', 0)
               .remove();
-
-
           });
     }
     // FIN DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////
@@ -705,7 +680,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-sumas-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 28)
-      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 20)
       .attr('height', 15)
       .style('fill', '#2d9e91');
 
@@ -724,7 +699,6 @@ function multipleLineChart(datos, params) {
             .text(d => formatComa(d.value))
             .style('fill', 'white')
             .style('text-anchor', 'middle')
-
         },
         update => {
           update
@@ -743,9 +717,9 @@ function multipleLineChart(datos, params) {
       .select('.grupo-sumas-meses-parcial')
       .append('rect')
       .attr('class', 'rect-total-selec-sumas-mes')
-      .attr('x', d => xScale(lineChartData.rangoMeses.length) - 25)
+      .attr('x', d => xScale(longArrayRangoMeses) - 25)
       .attr('y', 28)
-      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 20)
       .attr('height', 15)
       .style('fill', '#59cabd');
 
@@ -753,7 +727,7 @@ function multipleLineChart(datos, params) {
       .select('.grupo-sumas-meses-parcial')
       .append('text')
       .attr('class', 'texto-total-selec-sumas-mes')
-      .attr('x', d => xScale(lineChartData.rangoMeses.length) + 5)
+      .attr('x', d => xScale(longArrayRangoMeses) + 5)
       .attr('y', 40)
       .text(formatComa(d3.sum(lineChartData.sumasMensualesLineasSelec, d => d.value)))
       .style('fill', 'white')
@@ -770,7 +744,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-sumas-totales-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 48)
-      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 20)
       .attr('height', 15)
       .style('fill', 'purple');
 
@@ -796,9 +770,9 @@ function multipleLineChart(datos, params) {
       .select('.grupo-sumas-meses-totales')
       .append('rect')
       .attr('class', 'rect-total')
-      .attr('x', (d, i) => xScale(lineChartData.rangoMeses.length) - 25)
+      .attr('x', (d, i) => xScale(longArrayRangoMeses) - 25)
       .attr('y', 48)
-      .attr('width', width / (lineChartData.rangoMeses.length) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 20)
       .attr('height', 15)
       .style('fill', '#d046d0');
 
@@ -806,7 +780,7 @@ function multipleLineChart(datos, params) {
       .select('.grupo-sumas-meses-totales')
       .append('text')
       .attr('class', 'texto-total')
-      .attr('x', d => xScale(lineChartData.rangoMeses.length) + 5)
+      .attr('x', d => xScale(longArrayRangoMeses) + 5)
       .attr('y', 60)
       .text(formatComa(lineChartData.totalPeriodoCompleto))
       .style('fill', 'white')
@@ -884,18 +858,14 @@ function multipleLineChart(datos, params) {
       };
 
       _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
-      topValoresGrupo2 = _lineChartData.filter(d => eltosGrupo1Seleccionados.includes(d.key));
-      //topValoresGrupo2.splice(45);
+      _lineChartData_filtrado = _lineChartData.filter(d => eltosGrupo1Seleccionados.includes(d.key));
 
-      update_zona_top(topValoresGrupo2);
-
+      update_totales_grupo2(_lineChartData_filtrado);
       dibujarLineas(newlineChartData);
     } else {
       _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
-      topValoresGrupo2 = _lineChartData;
-      //topValoresGrupo2.splice(45);
 
-      update_zona_top(topValoresGrupo2);
+      update_totales_grupo2(_lineChartData);
       dibujarLineas(lineChartData);
     }
   }
@@ -908,10 +878,8 @@ function multipleLineChart(datos, params) {
       lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
 
       _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
-      topValoresGrupo2 = _lineChartData;
-      //topValoresGrupo2.splice(45);
 
-      update_zona_top(topValoresGrupo2);
+      update_totales_grupo2(_lineChartData);
       dibujarLineas(lineChartData);
     }
   }
@@ -944,6 +912,9 @@ function multipleLineChart(datos, params) {
     d3.selectAll('.OpcionFiltrado--seleccion').classed('OpcionFiltrado--seleccion', false);
     d3.selectAll('.OpcionFiltrado_media').classed('OpcionFiltrado_media--seleccion', mediaInfoSeleccionada);
 
+    _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
+
+    update_totales_grupo2(_lineChartData);
     dibujarLineas(lineChartData);
   }
 
@@ -986,21 +957,21 @@ function multipleLineChart(datos, params) {
 
 // Elementos del grupo1 a excluir.
 const parametros = {
-  arrayExcluidos: ["OFICINA 3", "SIN ASIGNAR"],
+  arrayExcluidos: [],
   documentoUnico: 1,
 }
 
 // Tipeado de valores.
 function type(d) {
   const parseDate = string => d3.utcParse('%d/%m/%y')(string);
-  const parseDate2 = d3.utcParse('%d/%m/%y');
   const formatYear = d3.timeFormat("%y%m");
   const parseNA = string => (string === 'NA' ? undefined : string);
+
   return {
     documento: +d.documento,
     numero: +d.numero,
     year: +parseDate(d.fecha).getUTCFullYear().toString().substr(2, 2),
-    mes: parseDate(d.fecha).getMonth(), // Asigna los meses con números del 0 al 11
+    mes: parseDate(d.fecha).getMonth(),
     dia: parseDate(d.fecha).getDate(),
     fecha: parseDate(d.fecha),
     yearmonth: formatYear(parseDate(d.fecha)),
@@ -1010,6 +981,6 @@ function type(d) {
 }
 
 // Cargar datos y mostrar gráfico.
-d3.csv('data/recargos_2019_ene_dic_con_clientes.csv', type).then(res => {
+d3.csv('data/facturacion_reina_2019_fact_y_abonos.csv', type).then(res => {
   multipleLineChart(res, parametros);
 });
