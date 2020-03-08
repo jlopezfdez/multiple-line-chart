@@ -684,7 +684,6 @@ function multipleLineChart(datos, params) {
       .attr('height', 15)
       .style('fill', '#2d9e91');
 
-
     const textSumasParcialesMeses = grafico
       .select('.grupo-sumas-meses-parcial')
       .selectAll('.textos-sumas-mes')
@@ -719,7 +718,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-total-selec-sumas-mes')
       .attr('x', d => xScale(longArrayRangoMeses) - 25)
       .attr('y', 28)
-      .attr('width', width / (longArrayRangoMeses) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 10)
       .attr('height', 15)
       .style('fill', '#59cabd');
 
@@ -772,7 +771,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-total')
       .attr('x', (d, i) => xScale(longArrayRangoMeses) - 25)
       .attr('y', 48)
-      .attr('width', width / (longArrayRangoMeses) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 10)
       .attr('height', 15)
       .style('fill', '#d046d0');
 
