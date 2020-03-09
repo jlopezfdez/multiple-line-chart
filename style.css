@@ -186,7 +186,7 @@ g.y.axis {
 }
 
 .grafico-zona-resumen {
-  width: 400px;
+  width: 500px;
   height: 750px;
   flex-wrap: wrap;
   padding-top: 3px;

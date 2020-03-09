@@ -149,7 +149,7 @@ function multipleLineChart(datos, params) {
 
   dibujarLineas(lineChartData);
 
-  function gestionarCorrespondencias() {  
+  function gestionarCorrespondencias() {
     matchArray = encontrarCorrespondencias(this.value, lineChartData.selecActualGrupo1);
     update_totales_grupo2(matchArray, 1);
   }
@@ -162,8 +162,8 @@ function multipleLineChart(datos, params) {
   }
 
   function update_totales_grupo2(data, desdeBuscar) {
-    
-    desdeBuscar==undefined ? lineChartData.selecActualGrupo1 = data : 0;
+
+    desdeBuscar == undefined ? lineChartData.selecActualGrupo1 = data : 0;
 
     var eltosZonaTopVentas = d3
       .select('.grafico-zona-resumen')
@@ -820,7 +820,7 @@ function multipleLineChart(datos, params) {
     let longitudLineCharData = lineChartData.meses.length;
 
     const inputBuscar = document.querySelector('.buscar');
-    inputBuscar.value='';
+    inputBuscar.value = '';
 
     const seleccionado = d3.select(this).classed('OpcionFiltrado--seleccion')
     d3.select(this).classed('OpcionFiltrado--seleccion', !seleccionado);
@@ -896,17 +896,17 @@ function multipleLineChart(datos, params) {
   function click_deseleccionar() {
     const seleccionado = d3.selectAll('.OpcionFiltrado--seleccion');
     const inputBuscar = document.querySelector('.buscar');
-    inputBuscar.value='';
-    
+    inputBuscar.value = '';
+
     if (!seleccionado.empty()) {
       seleccionado.classed('OpcionFiltrado--seleccion', false);
     }
-      lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
+    lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
 
-      _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
+    _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
 
-      update_totales_grupo2(_lineChartData);
-      dibujarLineas(lineChartData);
+    update_totales_grupo2(_lineChartData);
+    dibujarLineas(lineChartData);
   }
 
   function click_tooltips() {
@@ -928,7 +928,7 @@ function multipleLineChart(datos, params) {
 
   function click_media() {
     const inputBuscar = document.querySelector('.buscar');
-    inputBuscar.value='';
+    inputBuscar.value = '';
 
     mediaInfoSeleccionada = !mediaInfoSeleccionada;
     tooltipInfoSeleccionada = false;
@@ -940,6 +940,7 @@ function multipleLineChart(datos, params) {
     d3.selectAll('.OpcionFiltrado--seleccion').classed('OpcionFiltrado--seleccion', false);
     d3.selectAll('.OpcionFiltrado_media').classed('OpcionFiltrado_media--seleccion', mediaInfoSeleccionada);
 
+    lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
     _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
 
     update_totales_grupo2(_lineChartData);
@@ -987,7 +988,7 @@ function multipleLineChart(datos, params) {
 const parametros = {
   screenWidth: 1200,
   screenHeight: 850,
-  arrayExcluidos: ["OFICINA 3"],
+  arrayExcluidos: ["OFICINA 3", "GUDELIA MENDOZA", "PAULINA FERNANDEZ", "VENTAS CON BOLETA"],
   documentoUnico: 1,
 }
 
@@ -996,10 +997,19 @@ function type(d) {
   const parseDate = string => d3.utcParse('%d/%m/%y')(string);
   const formatYear = d3.timeFormat("%y%m");
   const parseNA = string => (string === 'NA' ? undefined : string);
+  // Los documentos tipo abono nos aseguramos de ponerlos en negativo.
+  const ajustePorAbono = function (valor, doc) {
+   
+    if (doc === 'Abono') {
+      return (Math.abs(+valor) * -1);
+    } else {
+      return valor;
+    }
+  }
 
   return {
     documento: +d.documento,
-    numero: +d.numero,
+    numero: +ajustePorAbono(d.numero, d.tipofactura),
     year: +parseDate(d.fecha).getUTCFullYear().toString().substr(2, 2),
     mes: parseDate(d.fecha).getMonth(),
     dia: parseDate(d.fecha).getDate(),
@@ -1007,6 +1017,7 @@ function type(d) {
     yearmonth: formatYear(parseDate(d.fecha)),
     grupo1: parseNA(d.grupo1),
     grupo2: parseNA(d.nombregrupo1),
+    tipofactura: d.tipofactura,
   };
 }
 
