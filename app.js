@@ -140,9 +140,31 @@ function multipleLineChart(datos, params) {
   update_totales_grupo2(_linechardata_copia);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  // ESCUCHA EN CAMPO DE BÚSQUEDA POR GRUPO2
+  const inputBusqueda = document.querySelector('.buscar');
+
+  inputBusqueda.addEventListener('change', gestionarCorrespondencias);
+  inputBusqueda.addEventListener('keyup', gestionarCorrespondencias);
+  //
+
   dibujarLineas(lineChartData);
 
-  function update_totales_grupo2(data) {
+  function gestionarCorrespondencias() {  
+    matchArray = findMatches(this.value, lineChartData.selecActualGrupo1);
+    update_totales_grupo2(matchArray, 1);
+  }
+
+  function findMatches(wordToMatch, grupo2) {
+    return grupo2.filter(key_grupo2 => {
+      const regex = new RegExp(wordToMatch, 'gi');
+      return key_grupo2.cliente.match(regex)
+    });
+  }
+
+  function update_totales_grupo2(data, desdeBuscar) {
+    
+    desdeBuscar==undefined ? lineChartData.selecActualGrupo1 = data : 0;
+
     var eltosZonaTopVentas = d3
       .select('.grafico-zona-resumen')
       .selectAll('div.elto-zona-top')
@@ -156,10 +178,10 @@ function multipleLineChart(datos, params) {
             .style('color', d => d.colorkey)
             .append('div')
             .attr('class', 'elto-grupo1-zona-top')
-            .html(d => `${d.cliente}&nbsp;`)
+            .html(d => `${d.cliente}`)
             .append('div')
             .attr('class', 'elto-suma-zona-top')
-            .html(d => `${formatComa(d.suma)}`)
+            .html(d => `&nbsp;${formatComa(d.suma)}`)
         },
         update => {},
         exit => {
@@ -795,8 +817,10 @@ function multipleLineChart(datos, params) {
     let eltosGrupo1Seleccionados = new Array;
     let topValoresGrupo2 = new Array;
     let _lineChartData = new Array;
-
     let longitudLineCharData = lineChartData.meses.length;
+
+    const inputBuscar = document.querySelector('.buscar');
+    inputBuscar.value='';
 
     const seleccionado = d3.select(this).classed('OpcionFiltrado--seleccion')
     d3.select(this).classed('OpcionFiltrado--seleccion', !seleccionado);
@@ -871,16 +895,18 @@ function multipleLineChart(datos, params) {
 
   function click_deseleccionar() {
     const seleccionado = d3.selectAll('.OpcionFiltrado--seleccion');
-
+    const inputBuscar = document.querySelector('.buscar');
+    inputBuscar.value='';
+    
     if (!seleccionado.empty()) {
       seleccionado.classed('OpcionFiltrado--seleccion', false);
+    }
       lineChartData.sumasMensualesLineasSelec = lineChartData.sumasPorMes;
 
       _lineChartData = lineChartData.seriescompletas_g1_g2.slice();
 
       update_totales_grupo2(_lineChartData);
       dibujarLineas(lineChartData);
-    }
   }
 
   function click_tooltips() {
@@ -901,6 +927,9 @@ function multipleLineChart(datos, params) {
   }
 
   function click_media() {
+    const inputBuscar = document.querySelector('.buscar');
+    inputBuscar.value='';
+    
     mediaInfoSeleccionada = !mediaInfoSeleccionada;
 
     if (mediaInfoSeleccionada) {
