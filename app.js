@@ -7,8 +7,8 @@ function multipleLineChart(datos, params) {
     mediaInfoSeleccionada = false;
 
   // Dimensiones generales del objeto.
-  const screenWidth = 1200,
-    screenHeight = 860;
+  const screenWidth = params.screenWidth,
+    screenHeight = params.screenHeight;
 
   const margin = {
     top: 40,
@@ -150,14 +150,14 @@ function multipleLineChart(datos, params) {
   dibujarLineas(lineChartData);
 
   function gestionarCorrespondencias() {  
-    matchArray = findMatches(this.value, lineChartData.selecActualGrupo1);
+    matchArray = encontrarCorrespondencias(this.value, lineChartData.selecActualGrupo1);
     update_totales_grupo2(matchArray, 1);
   }
 
-  function findMatches(wordToMatch, grupo2) {
+  function encontrarCorrespondencias(textoAEntontrar, grupo2) {
     return grupo2.filter(key_grupo2 => {
-      const regex = new RegExp(wordToMatch, 'gi');
-      return key_grupo2.cliente.match(regex)
+      const regex = new RegExp(textoAEntontrar, 'gi');
+      return key_grupo2.keygrupo2.match(regex)
     });
   }
 
@@ -178,7 +178,7 @@ function multipleLineChart(datos, params) {
             .style('color', d => d.colorkey)
             .append('div')
             .attr('class', 'elto-grupo1-zona-top')
-            .html(d => `${d.cliente}`)
+            .html(d => `${d.keygrupo2}`)
             .append('div')
             .attr('class', 'elto-suma-zona-top')
             .html(d => `&nbsp;${formatComa(d.suma)}`)
@@ -323,7 +323,7 @@ function multipleLineChart(datos, params) {
           id: contador, // Necesario para identificar únicamente cada entrada.
           key: eltogrupo1.key,
           colorkey: color(eltogrupo1.key),
-          cliente: eltogrupo1.values[j].key,
+          keygrupo2: eltogrupo1.values[j].key,
           suma: eltogrupo1.values[j].value
         });
         contador++;
@@ -931,11 +931,11 @@ function multipleLineChart(datos, params) {
     inputBuscar.value='';
 
     mediaInfoSeleccionada = !mediaInfoSeleccionada;
+    tooltipInfoSeleccionada = false;
 
     if (mediaInfoSeleccionada) {
       d3.selectAll('.tooltip').classed('tooltip--seleccion', false);
     }
-    tooltipInfoSeleccionada = false;
     d3.selectAll('.OpcionFiltrado_tooltips--seleccion').classed('OpcionFiltrado_tooltips--seleccion', false);
     d3.selectAll('.OpcionFiltrado--seleccion').classed('OpcionFiltrado--seleccion', false);
     d3.selectAll('.OpcionFiltrado_media').classed('OpcionFiltrado_media--seleccion', mediaInfoSeleccionada);
@@ -985,7 +985,9 @@ function multipleLineChart(datos, params) {
 
 // Elementos del grupo1 a excluir.
 const parametros = {
-  arrayExcluidos: [],
+  screenWidth: 1200,
+  screenHeight: 850,
+  arrayExcluidos: ["OFICINA 3"],
   documentoUnico: 1,
 }
 
@@ -1004,7 +1006,7 @@ function type(d) {
     fecha: parseDate(d.fecha),
     yearmonth: formatYear(parseDate(d.fecha)),
     grupo1: parseNA(d.grupo1),
-    grupo2: parseNA(d.nombrecliente),
+    grupo2: parseNA(d.nombregrupo1),
   };
 }
 
