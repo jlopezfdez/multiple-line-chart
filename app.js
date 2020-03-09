@@ -702,7 +702,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-sumas-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 28)
-      .attr('width', width / (longArrayRangoMeses) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 10)
       .attr('height', 15)
       .style('fill', '#2d9e91');
 
@@ -740,7 +740,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-total-selec-sumas-mes')
       .attr('x', d => xScale(longArrayRangoMeses) - 25)
       .attr('y', 28)
-      .attr('width', width / (longArrayRangoMeses) - 10)
+      .attr('width', width / (longArrayRangoMeses) - 5)
       .attr('height', 15)
       .style('fill', '#59cabd');
 
@@ -765,7 +765,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-sumas-totales-mes')
       .attr('x', (d, i) => xScale(i) - 25)
       .attr('y', 48)
-      .attr('width', width / (longArrayRangoMeses) - 20)
+      .attr('width', width / (longArrayRangoMeses) - 10)
       .attr('height', 15)
       .style('fill', 'purple');
 
@@ -793,7 +793,7 @@ function multipleLineChart(datos, params) {
       .attr('class', 'rect-total')
       .attr('x', (d, i) => xScale(longArrayRangoMeses) - 25)
       .attr('y', 48)
-      .attr('width', width / (longArrayRangoMeses) - 10)
+      .attr('width', width / (longArrayRangoMeses) - 5)
       .attr('height', 15)
       .style('fill', '#d046d0');
 
@@ -929,7 +929,7 @@ function multipleLineChart(datos, params) {
   function click_media() {
     const inputBuscar = document.querySelector('.buscar');
     inputBuscar.value='';
-    
+
     mediaInfoSeleccionada = !mediaInfoSeleccionada;
 
     if (mediaInfoSeleccionada) {
@@ -1009,6 +1009,6 @@ function type(d) {
 }
 
 // Cargar datos y mostrar gráfico.
-d3.csv('data/facturacion_reina_2019_fact_y_abonos.csv', type).then(res => {
+d3.dsv(';', 'data/facturacion_reina_19_feb_20.csv', type).then(res => {
   multipleLineChart(res, parametros);
 });
