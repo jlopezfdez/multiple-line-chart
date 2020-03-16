@@ -73,7 +73,7 @@ function multipleLineChart(datos, params) {
 
   // LINEA DE BOTONES CON ELEMENTOS GRUPO1 PARA FILTRADO /////////////////////////////////////////////////////////
   // 1.- Rellenar array de elementos del grupo1.
-  var elementosGrupo1 = new Array;
+  let elementosGrupo1 = new Array;
   for (let index = 0; index < lineChartData.series.length; index++) {
     elementosGrupo1.push(lineChartData.series[index].key);
   }
@@ -136,7 +136,7 @@ function multipleLineChart(datos, params) {
   // FIN DE CONTENEDORES DE ZONA FINAL CON SUMAS PARCIALES EN CADA MES DE LO FILTRADO Y SUMA TOTAL DE CADA MES /////
 
   // DIBUJAR TABLA CON TOTALES GRUPO2 //////////////////
-  var _linechardata_copia = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
+  let _linechardata_copia = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
   update_totales_grupo2(_linechardata_copia);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -165,7 +165,7 @@ function multipleLineChart(datos, params) {
 
     desdeBuscar == undefined ? lineChartData.selecActualGrupo1 = data : 0;
 
-    var eltosZonaTopVentas = d3
+    let eltosZonaTopVentas = d3
       .select('.grafico-zona-resumen')
       .selectAll('div.elto-zona-top')
       .data(data, d => d.id)
@@ -194,6 +194,7 @@ function multipleLineChart(datos, params) {
     let arrayMeses = new Array;
     let rangoMeses = new Array;
     let datosCompletosGrupo2 = new Array;
+    let elementosGrupo1 = new Array;
 
     // IMPORTANTE,
     // A veces, en la recuperacion de las facturas, hay comerciales que usan dos nombres distintos
@@ -213,26 +214,26 @@ function multipleLineChart(datos, params) {
 
     // Agrupamos por grupo1 y año-mes. Así tendrémos un array de objetos por elementos del grupo1 con el total de cada mes.
     // Se utiliza año mes en la variable d.yearmonth para los casos en los que se consulten meses de un año y del anterior.
-    var datosGrupo1 = d3
+    let datosGrupo1 = d3
       .nest()
       .key(d => d.grupo1)
       .key(d => d.yearmonth)
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
       .entries(dataOrdenadoFecha);
 
-    var sumasPorMes = d3
+    let sumasPorMes = d3
       .nest()
       .key(d => d.yearmonth)
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO, REDONDEA POR ENCIMA O POR DEBAJO.
       .entries(dataOrdenadoFecha);
 
-    var totalPeriodoCompleto = d3
+    let totalPeriodoCompleto = d3
       .sum(sumasPorMes, d => d.value);
 
     // Separamos en un array aparte todos los meses encontrados en el rango de datos.
     // Esto nos permitirá añadir un valor de 0 en el caso de que un elemento del grupo1 no tenga valores en un determinado mes.
     // El array 'arrayMeses' tendrá una lista de valores del tipo ["1912" (para diciembre de 2019), "2001" (para enero de 2020), etc]
-    var meses = d3
+    let meses = d3
       .nest()
       .key(d => d.yearmonth)
       .entries(dataOrdenadoFecha);
@@ -282,21 +283,19 @@ function multipleLineChart(datos, params) {
     // Máxima cantidad en cualquier mes de todos los elementos del grupo1.
     // Esto servirá para establecer el dominio máximo del eje Y.
     // También se calcula el sumatorio de valores del mes, y la media.
-    let maximos = new Array;
     for (let i = 0; i < datosGrupo1.length; i++) {
-      maximos.push(d3.max(datosGrupo1[i].values, d => d.value));
       datosGrupo1[i].values.suma = d3.sum(datosGrupo1[i].values, d => d.value);
       datosGrupo1[i].values.media = parseInt(d3.mean(datosGrupo1[i].values, d => d.value).toFixed(0));
     }
-    const limiteEjeY = d3.max(maximos);
+    const limiteEjeY = d3.max(datosGrupo1.map(d => d.values).flat().map(d => +d.value));
 
-    var totalMediasPorMes = parseInt(totalPeriodoCompleto / datosGrupo1.length).toFixed(0);
+    let totalMediasPorMes = parseInt(totalPeriodoCompleto / datosGrupo1.length).toFixed(0);
 
     // Datos ordenados de mayor a menor.
     datosGrupo1 = datosGrupo1.slice().sort((a, b) => d3.descending(a.values.suma, b.values.suma));
 
     ////// Agrupamos por criterio grupo1, y luego grupo2. Despues ordenamos ascendentemente.
-    var datosGrupo2 = d3
+    let datosGrupo2 = d3
       .nest()
       .key(d => d.grupo1)
       .key(d => d.grupo2)
@@ -304,10 +303,7 @@ function multipleLineChart(datos, params) {
       .entries(dataOrdenadoFecha);
 
     // Array con los elementos del grupo1
-    var elementosGrupo1 = new Array;
-    for (let index = 0; index < datosGrupo1.length; index++) {
-      elementosGrupo1.push(datosGrupo1[index].key);
-    }
+    datosGrupo1.forEach(d => elementosGrupo1.push(d.key));
 
     color = d3.scaleOrdinal()
       .domain(elementosGrupo1)
@@ -331,6 +327,7 @@ function multipleLineChart(datos, params) {
     }
     datosCompletosGrupo2.sort((a, b) => b.suma - a.suma);
     /////
+
 
     // Producción de datos finales para su posterior dibujo.
     const lineData = {
@@ -491,7 +488,7 @@ function multipleLineChart(datos, params) {
       .x(xLineGenAccessor)
       .y(yLineGenAccessor);
 
-    var lineas = grafico
+    let lineas = grafico
       .select('.svg-paths')
       .selectAll('.line-series')
       .data(data.series, d => d.key)
@@ -527,7 +524,7 @@ function multipleLineChart(datos, params) {
     let xPuntosAccessor = d => xScale(parseInt(d.mes));
     let yPuntosAccessor = mediaInfoSeleccionada ? d => yScale(d.media) : d => yScale(d.value);
 
-    var puntos = grafico
+    let puntos = grafico
       .selectAll('.puntos')
       .data(data.series, d => d.key)
       .join(
@@ -571,7 +568,7 @@ function multipleLineChart(datos, params) {
     // DIBUJO DE ETIQUETAS SOBRE LOS PUNTOS ////////////////////////////////////////////
     if (!mediaInfoSeleccionada) {
       claseGrupoTooltip = tooltipInfoSeleccionada ? "tooltip tooltip--seleccion" : "tooltip"
-      var tooltip = grafico
+      let tooltip = grafico
         .selectAll('.tooltip')
         .data(data.series, d => d.key)
         .join(
@@ -618,7 +615,7 @@ function multipleLineChart(datos, params) {
     let xEtiquetasListAccessor = d => xScale(parseInt(d.values[d.values.length - 1].mes) + 0.5);
     let yEtiquetasListAccessor = (d, i) => (i * 45) + 2;
 
-    var etiquetas = grafico
+    let etiquetas = grafico
       .select('.grupo-etiquetas')
       .selectAll('.texto-etiqueta')
       .data(data.series, d => d.key)
@@ -657,7 +654,7 @@ function multipleLineChart(datos, params) {
     let ySumatorioAccessor = (d, i) => (i * 45) + 17;
     let textoSuma = mediaInfoSeleccionada ? d => formatComa(d.values.media) : d => formatComa(d.values.suma);
 
-    var totalEtiqueta = grafico
+    let totalEtiqueta = grafico
       .select('.grupo-etiquetas')
       .selectAll('.total-etiqueta')
       .data(data.series, d => d.key)
@@ -835,7 +832,7 @@ function multipleLineChart(datos, params) {
       selec = d3.select(this).classed('OpcionFiltrado--seleccion');
       if (selec) {
 
-        var elto = lineChartData.series.filter(t => t.key == d.key);
+        let elto = lineChartData.series.filter(t => t.key == d.key);
         data.push(elto[0]);
         eltosGrupo1Seleccionados.push(elto[0].key);
       }
