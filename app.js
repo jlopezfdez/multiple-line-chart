@@ -2,7 +2,7 @@
 function multipleLineChart(datos, params) {
   // Preparación de datos.
   const filtroDatos = filterData(datos, params.arrayExcluidos);
-  const lineChartData = prepareLineChartData(filtroDatos);
+  const lineChartData = prepareLineChartData(filtroDatos, params.tipoAgrupacion);
   let tooltipInfoSeleccionada = false,
     mediaInfoSeleccionada = false;
 
@@ -137,6 +137,23 @@ function multipleLineChart(datos, params) {
 
   // DIBUJAR TABLA CON TOTALES GRUPO2 //////////////////
   let _linechardata_copia = lineChartData.seriescompletas_g1_g2.slice(); // Importante para hacer una copia, si no sería una referencia.
+
+  let zonaGraficoResumen = d3
+    .select('div.grafico-zona-resumen-cabecera');
+
+  zonaGraficoResumen
+    .insert('span')
+    .html('Facturacion por clientes')
+  zonaGraficoResumen
+    .insert('input')
+    .attr('type', 'text')
+    .attr('class', 'buscar')
+    .attr('placeholder', 'buscar...')
+    .style('margin-left', '5px');
+  zonaGraficoResumen
+    .insert('div')
+    .attr('class', 'grafico-zona-resumen');
+
   update_totales_grupo2(_linechardata_copia);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -190,11 +207,18 @@ function multipleLineChart(datos, params) {
         });
   }
   // Preparar estructura de datos idonea para representación visual.
-  function prepareLineChartData(datos) {
+  function prepareLineChartData(datos, tipoAgrupacion) {
+
     let arrayMeses = new Array;
     let rangoMeses = new Array;
     let datosCompletosGrupo2 = new Array;
     let elementosGrupo1 = new Array;
+
+    if (tipoAgrupacion === "Mensual") {
+      agrupacionEjeX = d => d.yearmonth;
+    } else { // Quincenal
+      agrupacionEjeX = d => d.quincena;
+    }
 
     // IMPORTANTE,
     // A veces, en la recuperacion de las facturas, hay comerciales que usan dos nombres distintos
@@ -217,13 +241,13 @@ function multipleLineChart(datos, params) {
     let datosGrupo1 = d3
       .nest()
       .key(d => d.grupo1)
-      .key(d => d.yearmonth)
+      .key(agrupacionEjeX)
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO
       .entries(dataOrdenadoFecha);
 
     let sumasPorMes = d3
       .nest()
-      .key(d => d.yearmonth)
+      .key(agrupacionEjeX)
       .rollup(v => parseInt(d3.sum(v, leaf => leaf.numero.toFixed(0)))) // IGNORAMOS DECIMALES DESDE EL PRINCIPIO, REDONDEA POR ENCIMA O POR DEBAJO.
       .entries(dataOrdenadoFecha);
 
@@ -235,7 +259,7 @@ function multipleLineChart(datos, params) {
     // El array 'arrayMeses' tendrá una lista de valores del tipo ["1912" (para diciembre de 2019), "2001" (para enero de 2020), etc]
     let meses = d3
       .nest()
-      .key(d => d.yearmonth)
+      .key(agrupacionEjeX)
       .entries(dataOrdenadoFecha);
     for (let index = 0; index < meses.length; index++) {
       arrayMeses.push(+meses[index].key);
@@ -327,7 +351,6 @@ function multipleLineChart(datos, params) {
     }
     datosCompletosGrupo2.sort((a, b) => b.suma - a.suma);
     /////
-
 
     // Producción de datos finales para su posterior dibujo.
     const lineData = {
@@ -983,10 +1006,11 @@ function multipleLineChart(datos, params) {
 
 // Elementos del grupo1 a excluir.
 const parametros = {
-  screenWidth: 1200,
+  screenWidth: 1600,
   screenHeight: 850,
   arrayExcluidos: ["OFICINA 3", "GUDELIA MENDOZA", "PAULINA FERNANDEZ", "VENTAS CON BOLETA"],
   documentoUnico: 1,
+  tipoAgrupacion: "Mensual" // opciones, Mensual, o Quincenal
 }
 
 // Tipeado de valores.
@@ -996,12 +1020,18 @@ function type(d) {
   const parseNA = string => (string === 'NA' ? undefined : string);
   // Los documentos tipo abono nos aseguramos de ponerlos en negativo.
   const ajustePorAbono = function (valor, doc) {
-   
+
     if (doc === 'Abono') {
       return (Math.abs(+valor) * -1);
     } else {
       return valor;
     }
+  }
+  const quincena = function (t) {
+    format = formatYear(parseDate(t));
+    dia = parseDate(t).getDate();
+    if (dia >= 16) return `${+format}2`;
+    else return `${+format}1`;
   }
 
   return {
@@ -1010,6 +1040,7 @@ function type(d) {
     year: +parseDate(d.fecha).getUTCFullYear().toString().substr(2, 2),
     mes: parseDate(d.fecha).getMonth(),
     dia: parseDate(d.fecha).getDate(),
+    quincena: quincena(d.fecha),
     fecha: parseDate(d.fecha),
     yearmonth: formatYear(parseDate(d.fecha)),
     grupo1: parseNA(d.grupo1),
