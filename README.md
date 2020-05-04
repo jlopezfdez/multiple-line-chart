@@ -1,2 +1,2 @@
 # multiple-line-chart
-Gráfico de Lineas Multiple
+Gráfico de Lineas Múltiple
