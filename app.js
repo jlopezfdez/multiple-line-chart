@@ -46,7 +46,7 @@ function multipleLineChart(datos, params) {
     .select('.grafico-subcabecera')
     .append('tspan')
     .attr('x', 0)
-    .text('Total facturado comercial/mes en 2019');
+    .text('Total facturado comercial/mes en 2020');
   const ejeY = grafico // Solo añade grupo para eje Y, que es dinámico. X e Y se dibujan en funcion 'dibujarLineas'.
     .append('g')
     .attr('class', 'y axis');
@@ -1015,6 +1015,7 @@ const parametros = {
 
 // Tipeado de valores.
 function type(d) {
+  
   const parseDate = string => d3.utcParse('%d/%m/%y')(string);
   const formatYear = d3.timeFormat("%y%m");
   const parseNA = string => (string === 'NA' ? undefined : string);
@@ -1044,12 +1045,12 @@ function type(d) {
     fecha: parseDate(d.fecha),
     yearmonth: formatYear(parseDate(d.fecha)),
     grupo1: parseNA(d.grupo1),
-    grupo2: parseNA(d.nombregrupo1),
+    grupo2: parseNA(d.nombregrupo2),
     tipofactura: d.tipofactura,
   };
 }
 
 // Cargar datos y mostrar gráfico.
-d3.dsv(';', 'data/facturacion_reina_19_feb_20.csv', type).then(res => {
+d3.dsv(';', 'data/facturacion_reina_2020.csv', type).then(res => {
   multipleLineChart(res, parametros);
 });

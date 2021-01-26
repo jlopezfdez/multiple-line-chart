@@ -1,0 +1,5 @@
+Cambios en fichero CSV
+
+0) Exportar csv como UTF desde GPS.order
+1) Cambiar 'DOMICILIADO' por ''
+2) Cambiar la primera linea por 'documento;numero;fecha;codgrupo1;grupo1;grupo2;nombregrupo2;tipofactura'
