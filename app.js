@@ -143,7 +143,7 @@ function multipleLineChart(datos, params) {
 
   zonaGraficoResumen
     .insert('span')
-    .html('Facturacion por clientes')
+    .html('Facturacion por clientes');
   zonaGraficoResumen
     .insert('input')
     .attr('type', 'text')
@@ -171,9 +171,9 @@ function multipleLineChart(datos, params) {
     update_totales_grupo2(matchArray, 1);
   }
 
-  function encontrarCorrespondencias(textoAEntontrar, grupo2) {
+  function encontrarCorrespondencias(textoAEncontrar, grupo2) {
     return grupo2.filter(key_grupo2 => {
-      const regex = new RegExp(textoAEntontrar, 'gi');
+      const regex = new RegExp(textoAEncontrar, 'gi');
       return key_grupo2.keygrupo2.match(regex)
     });
   }
@@ -342,16 +342,31 @@ function multipleLineChart(datos, params) {
       .domain(elementosGrupo1)
       .range(d3.schemeCategory10);
 
+    // Guardamos el color que tiene cada elemento del grupo 1, para luego asignar el mismo color
+    // en la tabla de elementos del grupo 2 donde el grupo 1 aparece referenciado
+    for (let x = 0; x < datosGrupo1.length; x++) {
+      datosGrupo1[x].color = color(datosGrupo1[x].key);
+    }
+
     // A los datos del grupo 2, le añadimos un campo ID para su identificacion única.
     let contador = 1;
     for (let index = 0; index < datosGrupo2.length; index++) {
       for (let j = 0; j < datosGrupo2[index].values.length; j++) {
         eltogrupo1 = datosGrupo2[index];
 
+        // Buscamos el color que le corresponde al elemento del grupo 1 en su tabla de colores
+        for (let index = 0; index < datosGrupo1.length; index++) {
+          if (datosGrupo1[index].key == eltogrupo1.key)
+          {
+            color_grupo1 = datosGrupo1[index].color;
+            break;
+          }
+        }
+
         datosCompletosGrupo2.push({
           id: contador, // Necesario para identificar únicamente cada entrada.
           key: eltogrupo1.key,
-          colorkey: color(eltogrupo1.key),
+          colorkey: color_grupo1,
           keygrupo2: eltogrupo1.values[j].key,
           suma: eltogrupo1.values[j].value
         });
@@ -364,7 +379,7 @@ function multipleLineChart(datos, params) {
     // Producción de datos finales para su posterior dibujo.
     const lineData = {
       series: datosGrupo1,
-      eltosgrupo1: datosGrupo1.map(d=>d.key),
+      eltosgrupo1: datosGrupo1.map(d => d.key),
       seriesmensual_g1_g2: datosGrupo2,
       seriescompletas_g1_g2: datosCompletosGrupo2,
       seriescompletas_mes_g1_g2: datosCompletosMesG1G2,
@@ -377,7 +392,6 @@ function multipleLineChart(datos, params) {
       sumasMensualesLineasSelec: sumasPorMes
     };
 
-    debugger;
     return lineData;
   }
 
@@ -863,17 +877,13 @@ function multipleLineChart(datos, params) {
     comercialesSeleccionados = [0, 1];
 
     _testlineChartData = lineChartData.seriescompletas_mes_g1_g2[array[0]];
-    
+
     //const dataOrdenadoFecha = data.slice().sort((a, b) => d3.ascending(a.fecha, b.fecha));
     // datosGrupo1.map(d => d.values).flat().map(d => +d.value)
-    comercialesSeleccionados.forEach(function(d) {
+    comercialesSeleccionados.forEach(function (d) {
       arraycomerciales.push(_testlineChartData.values[d]);
     });
   }
-
-
-
-
 
   function click_opciones() {
     let data = new Array;

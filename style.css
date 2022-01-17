@@ -1,6 +1,7 @@
 body {
   letter-spacing: -.014em;
   font-family: 'Avenir', sans-serif;
+  /*font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;*/
   display: flex;
   flex-wrap: wrap;
 }
@@ -10,7 +11,8 @@ svg {
 }
 
 text {
-  font-family: 'Avenir', sans-serif;
+  font-family: 'Avenir', sans-serif; 
+  /*font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;*/
 }
 
 path {
