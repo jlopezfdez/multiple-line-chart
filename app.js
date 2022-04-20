@@ -1060,7 +1060,7 @@ function multipleLineChart(datos, params) {
 
 // Elementos del grupo1 a excluir.
 const parametros = {
-  screenWidth: 1350,
+  screenWidth: 1360,
   screenHeight: 850,
   arrayExcluidos: ["OFICINA 3", "GUDELIA MENDOZA", "PAULINA FERNANDEZ", "VENTAS CON BOLETA"],
   documentoUnico: 1,
