@@ -1064,7 +1064,7 @@ const parametros = {
   screenHeight: 850,
   arrayExcluidos: ["OFICINA 3", "GUDELIA MENDOZA", "PAULINA FERNANDEZ", "VENTAS CON BOLETA"],
   documentoUnico: 1,
-  tipoAgrupacion: "Quincenal" // opciones, Mensual, o Quincenal
+  tipoAgrupacion: "Mensual" // opciones, Mensual, o Quincenal
 }
 
 // Tipeado de valores.
