@@ -1060,11 +1060,11 @@ function multipleLineChart(datos, params) {
 
 // Elementos del grupo1 a excluir.
 const parametros = {
-  screenWidth: 1450,
+  screenWidth: 1350,
   screenHeight: 850,
   arrayExcluidos: ["OFICINA 3", "GUDELIA MENDOZA", "PAULINA FERNANDEZ", "VENTAS CON BOLETA"],
   documentoUnico: 1,
-  tipoAgrupacion: "Mensual" // opciones, Mensual, o Quincenal
+  tipoAgrupacion: "Quincenal" // opciones, Mensual, o Quincenal
 }
 
 // Tipeado de valores.
